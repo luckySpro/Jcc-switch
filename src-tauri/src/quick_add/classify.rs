@@ -2,7 +2,27 @@
 //!
 //! 只做名称启发式；前端在上游预设的默认模型也在列表里时会优先用预设值。
 
+use once_cell::sync::Lazy;
+use regex::Regex;
 use serde::Serialize;
+
+/// 日期快照：`2026-05-17`、`20251001`、`-0528`（4 位以上的纯数字段都算，不是版本号）
+static SNAPSHOT_RE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"(?:19|20)\d{2}[-_./]\d{2}[-_./]\d{2}|\d{4,}").unwrap());
+
+/// 名称里的日期快照，统一成纯数字便于比较新旧；没有时为空
+fn snapshot_of(id: &str) -> String {
+    SNAPSHOT_RE
+        .find_iter(id)
+        .map(|m| {
+            m.as_str()
+                .chars()
+                .filter(char::is_ascii_digit)
+                .collect::<String>()
+        })
+        .max()
+        .unwrap_or_default()
+}
 
 /// 名称里出现这些片段的不是对话模型
 const NON_CHAT_MARKERS: &[&str] = &[
@@ -72,7 +92,9 @@ pub fn chat_models(ids: &[String]) -> Vec<String> {
 
 /// 名称里的版本号，按数字段比较（`glm-5.1` → [5,1]，`gpt-4o` → [4]）
 fn version_of(id: &str) -> Vec<u32> {
-    let lower = id.to_ascii_lowercase();
+    let lower = SNAPSHOT_RE
+        .replace_all(&id.to_ascii_lowercase(), "-")
+        .into_owned();
     // 日期快照（8 位数字）和参数量（`70b`）不算版本
     let mut best: Vec<u32> = Vec::new();
     let mut current = String::new();
@@ -133,12 +155,16 @@ fn penalty(id: &str) -> u8 {
     p
 }
 
-/// 在 `pool` 里挑最好的一个：版本最高，其次不是预览版，其次名字最短（别名优先于日期快照）
+/// 在 `pool` 里挑最好的一个：版本最高，其次不是预览版，其次不带日期的别名，
+/// 其次日期最新的快照，最后名字最短
 fn best<'a>(pool: impl Iterator<Item = &'a String>) -> Option<String> {
     pool.max_by(|a, b| {
+        let (sa, sb) = (snapshot_of(a), snapshot_of(b));
         version_of(a)
             .cmp(&version_of(b))
             .then_with(|| penalty(b).cmp(&penalty(a)))
+            .then_with(|| sb.is_empty().cmp(&sa.is_empty()).reverse())
+            .then_with(|| sa.cmp(&sb))
             .then_with(|| b.len().cmp(&a.len()))
             .then_with(|| b.cmp(a))
     })
@@ -232,7 +258,9 @@ pub fn suggest(models: &[String]) -> Suggestions {
             } else {
                 Some(tiers(&others).0)
             }
-        });
+        })
+        // 只剩 claude / gemini 也照样给：中转站通常能用 OpenAI 协议调任意模型
+        .or_else(|| Some(tiers(&models).0));
 
     let gemini =
         best_with(&models, "gemini", &["pro"]).or_else(|| best_in_family(&models, "gemini"));
@@ -247,6 +275,42 @@ pub fn suggest(models: &[String]) -> Suggestions {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn newest_version_wins_over_dated_snapshots() {
+        let models = v(&[
+            "qwen3.7-max-2026-05-17",
+            "qwen3.8-max",
+            "qwen3.8-max-2026-09-30",
+            "qwen3.8-max-2026-08-01",
+            "qwen3.5-flash-2026-02-23",
+            "qwen3.8-flash",
+        ]);
+        let s = suggest(&models);
+        let claude = s.claude.unwrap();
+        assert_eq!(claude.main, "qwen3.8-max");
+        assert_eq!(claude.haiku, "qwen3.8-flash");
+        assert_eq!(
+            best(v(&["qwen3.8-max-2026-08-01", "qwen3.8-max-2026-09-30"]).iter()),
+            Some("qwen3.8-max-2026-09-30".to_string())
+        );
+    }
+
+    #[test]
+    fn codex_takes_any_model_when_the_relay_only_has_claude() {
+        let s = suggest(&v(&["claude-sonnet-5", "claude-haiku-5"]));
+        assert_eq!(s.codex.as_deref(), Some("claude-sonnet-5"));
+    }
+
+    #[test]
+    fn glm_only_relay_fills_claude_and_codex() {
+        let s = suggest(&v(&["glm-5.1", "glm-5.1-air"]));
+        let claude = s.claude.unwrap();
+        assert_eq!(claude.main, "glm-5.1");
+        assert_eq!(claude.haiku, "glm-5.1-air");
+        assert_eq!(s.codex.as_deref(), Some("glm-5.1"));
+        assert_eq!(s.gemini, None);
+    }
 
     fn v(ids: &[&str]) -> Vec<String> {
         ids.iter().map(|s| s.to_string()).collect()
@@ -270,6 +334,9 @@ mod tests {
         assert_eq!(version_of("qwen3-coder-30b"), vec![3]);
         assert!(version_of("glm-5.1") > version_of("glm-4.6v"));
         assert_eq!(version_of("claude-haiku-4-5-20251001"), vec![5]);
+        // 日期快照不是版本号
+        assert_eq!(version_of("qwen3.7-max-2026-05-17"), vec![3, 7]);
+        assert_eq!(version_of("deepseek-r1-0528"), vec![1]);
     }
 
     #[test]

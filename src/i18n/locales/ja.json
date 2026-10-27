@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "CC Switch",
+    "title": "Jcc Switch",
     "description": "Claude Code・Codex・Gemini CLI のためのオールインワンアシスタント"
   },
   "common": {
@@ -5136,6 +5136,8 @@
     "modelCount": "チャットモデル {{count}} 件",
     "unsupported": "このアプリに必要なプロトコルがありません",
     "needsProxy": "ローカルプロキシでの変換が必要なため既定でオフ",
-    "noModels": "このアプリに合うモデルがありません"
+    "noModels": "このアプリに合うモデルがありません",
+    "typeModel": "適したモデルが見つかりません。モデル名を入力すると有効にできます",
+    "modelRequired": "モデル名を入力してください"
   }
 }

@@ -1,0 +1,26 @@
+{
+  "version": "0.1.1",
+  "items": [
+    {
+      "type": "fix",
+      "zh": "默认模型优先选最新版本，不再被名字里的日期误导",
+      "zh-TW": "預設模型優先選最新版本，不再被名稱裡的日期誤導",
+      "en": "Default models now pick the newest version instead of being misled by dates in the name",
+      "ja": "既定モデルは名前の日付に惑わされず最新バージョンを選ぶように"
+    },
+    {
+      "type": "improve",
+      "zh": "Codex 可直接使用 GLM、Qwen 等非 GPT 模型",
+      "zh-TW": "Codex 可直接使用 GLM、Qwen 等非 GPT 模型",
+      "en": "Codex can use non-GPT models such as GLM and Qwen directly",
+      "ja": "Codex で GLM や Qwen など GPT 以外のモデルを直接使えるように"
+    },
+    {
+      "type": "improve",
+      "zh": "没识别出合适模型时可以手动填写模型名",
+      "zh-TW": "沒識別出合適模型時可以手動填寫模型名稱",
+      "en": "Type a model name yourself when none was picked automatically",
+      "ja": "モデルが自動で選ばれなかったときは手入力できるように"
+    }
+  ]
+}

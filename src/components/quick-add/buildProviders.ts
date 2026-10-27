@@ -49,12 +49,19 @@ function preferPreset(
   return fallback;
 }
 
-/** 识别结果对应的默认勾选和模型 */
+const EMPTY_SLOTS: ClaudeSlots = { main: "", opus: "", sonnet: "", haiku: "" };
+
+/**
+ * 识别结果对应的默认勾选和模型。
+ * 应用有可用地址但没挑出合适模型时也给一份空的选择，默认不勾选，用户可以手填模型名后启用。
+ */
 export function defaultSelection(result: DetectResult): QuickAddSelection {
   const { apps, suggested, models } = result;
 
   let claude: QuickAddSelection["claude"] = null;
-  if (apps.claude && suggested.claude) {
+  if (apps.claude && !suggested.claude) {
+    claude = { enabled: false, slots: { ...EMPTY_SLOTS } };
+  } else if (apps.claude && suggested.claude) {
     const env = (findClaudePreset(apps.claude.preset)?.settingsConfig as any)
       ?.env as Record<string, unknown> | undefined;
     const s = suggested.claude;
@@ -78,7 +85,9 @@ export function defaultSelection(result: DetectResult): QuickAddSelection {
   }
 
   let codex: QuickAddSelection["codex"] = null;
-  if (apps.codex && suggested.codex) {
+  if (apps.codex && !suggested.codex) {
+    codex = { enabled: false, model: "" };
+  } else if (apps.codex && suggested.codex) {
     const presetModel = findCodexPreset(apps.codex.preset)?.config.match(
       /^model\s*=\s*"([^"]*)"/m,
     )?.[1];
@@ -89,7 +98,9 @@ export function defaultSelection(result: DetectResult): QuickAddSelection {
   }
 
   let gemini: QuickAddSelection["gemini"] = null;
-  if (apps.gemini && suggested.gemini) {
+  if (apps.gemini && !suggested.gemini) {
+    gemini = { enabled: false, model: "" };
+  } else if (apps.gemini && suggested.gemini) {
     gemini = {
       enabled: apps.gemini.enabled,
       model: preferPreset(
@@ -236,6 +247,24 @@ export function buildQuickAddProviders(
       app: "gemini",
       provider: buildGemini(result, selection.gemini.model),
     });
+  }
+  return out;
+}
+
+/** 勾选了但模型名还空着的应用；有这样的应用时不能保存 */
+export function appsMissingModel(selection: QuickAddSelection): QuickAddApp[] {
+  const out: QuickAddApp[] = [];
+  if (
+    selection.claude?.enabled &&
+    Object.values(selection.claude.slots).some((m) => !m.trim())
+  ) {
+    out.push("claude");
+  }
+  if (selection.codex?.enabled && !selection.codex.model.trim()) {
+    out.push("codex");
+  }
+  if (selection.gemini?.enabled && !selection.gemini.model.trim()) {
+    out.push("gemini");
   }
   return out;
 }

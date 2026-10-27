@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { DetectResult } from "@/lib/api/quickAdd";
-import { buildQuickAddProviders, defaultSelection } from "./buildProviders";
+import {
+  appsMissingModel,
+  buildQuickAddProviders,
+  defaultSelection,
+} from "./buildProviders";
 import { looksLikeKeyPaste } from "./usePasteToQuickAdd";
 
 function result(overrides: Partial<DetectResult> = {}): DetectResult {
@@ -168,6 +172,32 @@ describe("quick add provider builder", () => {
     expect(env.ANTHROPIC_API_KEY).toBe(r.apiKey);
     expect(env.ANTHROPIC_AUTH_TOKEN).toBeUndefined();
     expect(claude.provider.meta?.apiKeyField).toBe("ANTHROPIC_API_KEY");
+  });
+});
+
+describe("apps without a suggested model", () => {
+  it("are offered unchecked with empty models and block saving until filled", () => {
+    const r = result({
+      models: [],
+      totalModels: 0,
+      suggested: { claude: null, codex: null, gemini: null },
+    });
+    const sel = defaultSelection(r);
+    expect(sel.claude).toEqual({
+      enabled: false,
+      slots: { main: "", opus: "", sonnet: "", haiku: "" },
+    });
+    expect(sel.codex).toEqual({ enabled: false, model: "" });
+    expect(appsMissingModel(sel)).toEqual([]);
+
+    const typed = { ...sel, codex: { enabled: true, model: "" } };
+    expect(appsMissingModel(typed)).toEqual(["codex"]);
+    typed.codex.model = "glm-5.1";
+    expect(appsMissingModel(typed)).toEqual([]);
+    const [codex] = buildQuickAddProviders(r, typed);
+    expect((codex.provider.settingsConfig as any).config).toMatch(
+      /^model = "glm-5.1"$/m,
+    );
   });
 });
 
