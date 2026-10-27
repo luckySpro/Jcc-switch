@@ -579,8 +579,10 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$HAS_APPLE_CERT" != "true" ]; then
-            # 空值也会被 Tauri 当成要签名 / 公证，没证书时整个去掉
-            unset APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
+            # 空值也会被 Tauri 当成要公证，没证书时去掉；改用 ad-hoc 签名（"-"），
+            # 否则 Apple Silicon 上整个 .app 没有有效签名，系统直接报「已损坏」
+            unset APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
+            export APPLE_SIGNING_IDENTITY="-"
           fi
           max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
@@ -680,7 +682,7 @@ jobs:
             --icon "Jcc Switch.app" 180 220 \
             --hide-extension "Jcc Switch.app" \
             --app-drop-link 480 220 \
-            "${CODESIGN_ARGS[@]}" \
+            ${CODESIGN_ARGS[@]+"${CODESIGN_ARGS[@]}"} \
             --no-internet-enable \
             "release-assets/$NEW_DMG" \
             "$DMG_STAGE_DIR"
@@ -978,7 +980,7 @@ jobs:
             echo "- **Linux (x86_64 / ARM64)**：\`.AppImage\` / \`.deb\` / \`.rpm\`"
             echo
             if [ ! -f release-assets/latest.json ]; then
-              echo "> 这一版没有签名：macOS 首次打开请在「应用程序」里右键 → 打开；Windows 出现 SmartScreen 提示时点「更多信息」→「仍要运行」。应用内自动更新暂不可用。"
+              echo "> 这一版没有签名：macOS 首次打开会被拦下，到「系统设置 → 隐私与安全性」点「仍要打开」；Windows 出现 SmartScreen 提示时点「更多信息」→「仍要运行」。应用内自动更新暂不可用。"
             fi
           } > release-body.md
           cat release-body.md
