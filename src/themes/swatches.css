@@ -1,0 +1,303 @@
+/* Jcc-switch 色卡：只覆盖上游 v7 设计 token，组件结构不动。
+   由 html[data-swatch] 选择；不设该属性即上游原版配色。
+   改色请同时改 src/themes/swatches.ts 里的预览色。 */
+
+:root[data-swatch="clay"] {
+  --bg-app: #faf9f5;
+  --bg-sidebar: #f0eee6;
+  --bg-subtle: #edebe3;
+  --bg-selected: #e5e2d8;
+  --bg-card: #ffffff;
+  --border-strong: #d4d0c4;
+  --text-1: #262624;
+  --text-2: #5e5b54;
+  --text-3: #6e6a62;
+  --action-bg: #c96442;
+  --action-fg: #ffffff;
+  --action-hover: #b5583a;
+  --action-text: #a9502f;
+  --action-soft: #f5e6df;
+  --control-off: #a8a398;
+  --agent-claude: #a9502f;
+  --background: 48 33.3% 97.1%;
+  --foreground: 60 2.7% 14.5%;
+  --card: 0 0% 100%;
+  --card-foreground: 60 2.7% 14.5%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 60 2.7% 14.5%;
+  --primary: 15.1 55.6% 52.4%;
+  --primary-foreground: 0 0% 100%;
+  --border: 44 22.4% 86.9%;
+  --input: 44 22.4% 86.9%;
+  --ring: 15.1 55.6% 52.4%;
+}
+
+:root.dark[data-swatch="clay"] {
+  --bg-app: #262624;
+  --bg-sidebar: #1f1e1d;
+  --bg-subtle: #30302e;
+  --bg-selected: #3a3936;
+  --bg-card: #30302e;
+  --border-strong: #4a4843;
+  --text-1: #ece9e1;
+  --text-2: #b7b2a8;
+  --text-3: #a29e95;
+  --action-bg: #c96442;
+  --action-fg: #ffffff;
+  --action-hover: #d97757;
+  --action-text: #e08a6a;
+  --action-soft: rgba(217, 119, 87, 0.14);
+  --control-off: #6a675f;
+  --agent-claude: #e08a6a;
+  --background: 60 2.7% 14.5%;
+  --foreground: 43.6 22.4% 90.4%;
+  --card: 60 2.1% 18.4%;
+  --card-foreground: 43.6 22.4% 90.4%;
+  --popover: 60 2.1% 18.4%;
+  --popover-foreground: 43.6 22.4% 90.4%;
+  --primary: 15.1 55.6% 52.4%;
+  --primary-foreground: 0 0% 100%;
+  --border: 48 4.2% 23.3%;
+  --input: 48 4.2% 23.3%;
+  --ring: 15.1 55.6% 52.4%;
+}
+
+:root[data-swatch="graphite"] {
+  --bg-app: #f7f7f5;
+  --bg-sidebar: #efefec;
+  --bg-subtle: #eaeae6;
+  --bg-selected: #e0e0db;
+  --bg-card: #ffffff;
+  --border-strong: #cfcfc9;
+  --text-1: #1f1f1e;
+  --text-2: #55554f;
+  --text-3: #66665f;
+  --action-bg: #2f2f2d;
+  --action-fg: #ffffff;
+  --action-hover: #474744;
+  --action-text: #2f2f2d;
+  --action-soft: #e9e9e5;
+  --control-off: #a3a39c;
+  --agent-claude: #2f2f2d;
+  --background: 60 11.1% 96.5%;
+  --foreground: 60 1.6% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 60 1.6% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 60 1.6% 12%;
+  --primary: 60 2.2% 18%;
+  --primary-foreground: 0 0% 100%;
+  --border: 60 7.9% 87.6%;
+  --input: 60 7.9% 87.6%;
+  --ring: 60 2.2% 18%;
+}
+
+:root.dark[data-swatch="graphite"] {
+  --bg-app: #1c1c1b;
+  --bg-sidebar: #151514;
+  --bg-subtle: #262625;
+  --bg-selected: #30302e;
+  --bg-card: #262625;
+  --border-strong: #45453f;
+  --text-1: #ededea;
+  --text-2: #b0b0a9;
+  --text-3: #9e9e98;
+  --action-bg: #e6e6e1;
+  --action-fg: #1c1c1b;
+  --action-hover: #ffffff;
+  --action-text: #e6e6e1;
+  --action-soft: rgba(230, 230, 225, 0.1);
+  --control-off: #5f5f5a;
+  --agent-claude: #e6e6e1;
+  --background: 60 1.8% 10.8%;
+  --foreground: 60 7.7% 92.4%;
+  --card: 60 1.3% 14.7%;
+  --card-foreground: 60 7.7% 92.4%;
+  --popover: 60 1.3% 14.7%;
+  --popover-foreground: 60 7.7% 92.4%;
+  --primary: 60 9.1% 89.2%;
+  --primary-foreground: 60 1.8% 10.8%;
+  --border: 60 4.1% 19.2%;
+  --input: 60 4.1% 19.2%;
+  --ring: 60 9.1% 89.2%;
+}
+
+:root[data-swatch="celadon"] {
+  --bg-app: #f4f7f4;
+  --bg-sidebar: #e9efea;
+  --bg-subtle: #e3ebe5;
+  --bg-selected: #d8e3db;
+  --bg-card: #ffffff;
+  --border-strong: #c3d2c8;
+  --text-1: #1f2a26;
+  --text-2: #4e5e57;
+  --text-3: #5d6c66;
+  --action-bg: #2f7d6d;
+  --action-fg: #ffffff;
+  --action-hover: #276a5c;
+  --action-text: #276a5c;
+  --action-soft: #dcede7;
+  --control-off: #9db0a7;
+  --agent-claude: #276a5c;
+  --background: 120 15.8% 96.3%;
+  --foreground: 158.2 15.1% 14.3%;
+  --card: 0 0% 100%;
+  --card-foreground: 158.2 15.1% 14.3%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 158.2 15.1% 14.3%;
+  --primary: 167.7 45.3% 33.7%;
+  --primary-foreground: 0 0% 100%;
+  --border: 138 14.7% 86.7%;
+  --input: 138 14.7% 86.7%;
+  --ring: 167.7 45.3% 33.7%;
+}
+
+:root.dark[data-swatch="celadon"] {
+  --bg-app: #1d2422;
+  --bg-sidebar: #171d1b;
+  --bg-subtle: #252e2b;
+  --bg-selected: #2e3935;
+  --bg-card: #252e2b;
+  --border-strong: #41504a;
+  --text-1: #e6eeea;
+  --text-2: #a9b8b1;
+  --text-3: #98a8a1;
+  --action-bg: #3e8e7e;
+  --action-fg: #ffffff;
+  --action-hover: #4ba391;
+  --action-text: #6cc4b1;
+  --action-soft: rgba(62, 142, 126, 0.16);
+  --control-off: #58675f;
+  --agent-claude: #6cc4b1;
+  --background: 162.9 10.8% 12.7%;
+  --foreground: 150 19% 91.8%;
+  --card: 160 10.8% 16.3%;
+  --card-foreground: 150 19% 91.8%;
+  --popover: 160 10.8% 16.3%;
+  --popover-foreground: 150 19% 91.8%;
+  --primary: 168 39.2% 40%;
+  --primary-foreground: 0 0% 100%;
+  --border: 156.9 11.1% 22.9%;
+  --input: 156.9 11.1% 22.9%;
+  --ring: 168 39.2% 40%;
+}
+
+:root[data-swatch="indigo"] {
+  --bg-app: #f6f6fb;
+  --bg-sidebar: #ececf5;
+  --bg-subtle: #e6e7f2;
+  --bg-selected: #dcdeee;
+  --bg-card: #ffffff;
+  --border-strong: #c9cbe0;
+  --text-1: #1f2033;
+  --text-2: #4f5168;
+  --text-3: #5f6178;
+  --action-bg: #4f5fc0;
+  --action-fg: #ffffff;
+  --action-hover: #4352ad;
+  --action-text: #3e4da6;
+  --action-soft: #e2e5f8;
+  --control-off: #a2a4bc;
+  --agent-claude: #3e4da6;
+  --background: 240 38.5% 97.5%;
+  --foreground: 237 24.4% 16.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 237 24.4% 16.1%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 237 24.4% 16.1%;
+  --primary: 231.5 47.3% 53.1%;
+  --primary-foreground: 0 0% 100%;
+  --border: 235.7 25.9% 89.4%;
+  --input: 235.7 25.9% 89.4%;
+  --ring: 231.5 47.3% 53.1%;
+}
+
+:root.dark[data-swatch="indigo"] {
+  --bg-app: #1e1f2a;
+  --bg-sidebar: #181922;
+  --bg-subtle: #272836;
+  --bg-selected: #303244;
+  --bg-card: #272836;
+  --border-strong: #444760;
+  --text-1: #e8e9f3;
+  --text-2: #abadc2;
+  --text-3: #9b9db3;
+  --action-bg: #5b6cc9;
+  --action-fg: #ffffff;
+  --action-hover: #6c7cd6;
+  --action-text: #9aa5ec;
+  --action-soft: rgba(91, 108, 201, 0.18);
+  --control-off: #5c5f78;
+  --agent-claude: #9aa5ec;
+  --background: 235 16.7% 14.1%;
+  --foreground: 234.5 31.4% 93.1%;
+  --card: 236 16.1% 18.2%;
+  --card-foreground: 234.5 31.4% 93.1%;
+  --popover: 236 16.1% 18.2%;
+  --popover-foreground: 234.5 31.4% 93.1%;
+  --primary: 230.7 50.5% 57.3%;
+  --primary-foreground: 0 0% 100%;
+  --border: 233.7 15% 24.9%;
+  --input: 233.7 15% 24.9%;
+  --ring: 230.7 50.5% 57.3%;
+}
+
+:root[data-swatch="rose"] {
+  --bg-app: #fbf6f6;
+  --bg-sidebar: #f3eaea;
+  --bg-subtle: #efe4e5;
+  --bg-selected: #e7d9da;
+  --bg-card: #ffffff;
+  --border-strong: #dcc8ca;
+  --text-1: #2c2022;
+  --text-2: #5f4f52;
+  --text-3: #6e5d60;
+  --action-bg: #b44a5f;
+  --action-fg: #ffffff;
+  --action-hover: #a03f53;
+  --action-text: #9c3b4f;
+  --action-soft: #f6dfe3;
+  --control-off: #b9a4a7;
+  --agent-claude: #9c3b4f;
+  --background: 0 38.5% 97.5%;
+  --foreground: 350 15.8% 14.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 350 15.8% 14.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 350 15.8% 14.9%;
+  --primary: 348.1 41.7% 49.8%;
+  --primary-foreground: 0 0% 100%;
+  --border: 356 27.3% 89.2%;
+  --input: 356 27.3% 89.2%;
+  --ring: 348.1 41.7% 49.8%;
+}
+
+:root.dark[data-swatch="rose"] {
+  --bg-app: #2a1f21;
+  --bg-sidebar: #22191b;
+  --bg-subtle: #33272a;
+  --bg-selected: #3d2f33;
+  --bg-card: #33272a;
+  --border-strong: #57434a;
+  --text-1: #f1e6e7;
+  --text-2: #c3afb2;
+  --text-3: #b09da0;
+  --action-bg: #c2566b;
+  --action-fg: #ffffff;
+  --action-hover: #d06a7e;
+  --action-text: #e890a1;
+  --action-soft: rgba(194, 86, 107, 0.18);
+  --control-off: #6b575b;
+  --agent-claude: #e890a1;
+  --background: 349.1 15.1% 14.3%;
+  --foreground: 354.5 28.2% 92.4%;
+  --card: 345 13.3% 17.6%;
+  --card-foreground: 354.5 28.2% 92.4%;
+  --popover: 345 13.3% 17.6%;
+  --popover-foreground: 354.5 28.2% 92.4%;
+  --primary: 348.3 47% 54.9%;
+  --primary-foreground: 0 0% 100%;
+  --border: 345.9 13.6% 24.5%;
+  --input: 345.9 13.6% 24.5%;
+  --ring: 348.3 47% 54.9%;
+}

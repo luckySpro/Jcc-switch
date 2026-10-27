@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronRight, Monitor, Moon, Sun } from "lucide-react";
 import type { SettingsFormState } from "@/hooks/useSettings";
 import { useTheme } from "@/components/theme-provider";
+import { SwatchPicker } from "@/components/settings/SwatchPicker";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import {
   Select,
@@ -101,6 +102,12 @@ export function GeneralSection({
               />
             }
           />
+          <div className="flex flex-col gap-2 py-2">
+            <span className="text-body text-fg-1">
+              {t("settings.swatch.label", { defaultValue: "色卡" })}
+            </span>
+            <SwatchPicker />
+          </div>
           <SettingsRow
             label={t("settings.general.quotaDisplay")}
             help={{

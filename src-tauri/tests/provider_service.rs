@@ -3228,7 +3228,7 @@ fn claude_editor_global_settings_reach_account_dirs() {
     );
 
     // 本机账号表里有一个账号，目录已经建好
-    let app_dir = home.join(".cc-switch");
+    let app_dir = home.join(".jcc-switch");
     let local_id = "0123456789abcdef0123456789abcdef";
     let config_dir = app_dir
         .join("claude-accounts")
@@ -3672,7 +3672,7 @@ fn claude_editor_never_leaves_the_row_and_live_apart() {
     let (row, base) = open_claude_editor(&state, "a");
     let mut edited = base.clone();
     edited["env"]["ANTHROPIC_AUTH_TOKEN"] = json!("sk-new");
-    let db = rusqlite::Connection::open(home.join(".cc-switch/cc-switch.db")).expect("open db");
+    let db = rusqlite::Connection::open(home.join(".jcc-switch/cc-switch.db")).expect("open db");
     db.execute_batch(
         "CREATE TRIGGER fail_edit BEFORE UPDATE OF settings_config ON providers \
          BEGIN SELECT RAISE(ABORT, 'injected save failure'); END;",

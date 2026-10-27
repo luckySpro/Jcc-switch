@@ -4,6 +4,7 @@ import App from "./App";
 import { DatabaseUpgrade } from "./components/DatabaseUpgrade";
 import { UpdateProvider } from "./contexts/UpdateContext";
 import "./index.css";
+import { applySwatch, getStoredSwatch } from "@/themes/swatches";
 // 导入国际化配置
 import i18n, { syncLanguageFromSettings } from "./i18n";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -28,6 +29,9 @@ import {
 } from "./lib/modelsDevAutoSync";
 import { initializeWindowActivity } from "@/lib/windowActivity";
 import { initializeInputModality } from "@/lib/inputModality";
+
+// 色卡在首次渲染前生效，避免闪一下上游配色
+applySwatch(getStoredSwatch());
 
 installGlobalErrorHandlers();
 

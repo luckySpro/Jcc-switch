@@ -309,13 +309,83 @@ pub fn get_claude_settings_path() -> PathBuf {
     settings
 }
 
-/// 获取应用配置目录路径 (~/.cc-switch)
+/// Jcc-switch 的设备数据目录名，与上游 CC Switch 的 `.cc-switch` 分开，两者可并存。
+pub const APP_DIR_NAME: &str = ".jcc-switch";
+
+/// 上游 CC Switch 的数据目录名，仅用于首次启动导入。
+const UPSTREAM_APP_DIR_NAME: &str = ".cc-switch";
+
+/// 首次启动时从上游 `~/.cc-switch` 复制数据库与设置。
+///
+/// 只在 Jcc-switch 目录尚不存在、且没有自定义目录覆盖时执行；只复制顶层的
+/// 数据库与设置文件，不复制备份和日志。失败只记日志，不阻止启动。
+pub fn import_upstream_data_once() {
+    if crate::app_store::get_app_config_dir_override().is_some() {
+        return;
+    }
+    let home = get_home_dir();
+    if let Err(e) =
+        import_upstream_data_from(&home.join(UPSTREAM_APP_DIR_NAME), &home.join(APP_DIR_NAME))
+    {
+        eprintln!("导入 CC Switch 数据失败: {e}");
+    }
+}
+
+fn import_upstream_data_from(src: &Path, dest: &Path) -> std::io::Result<bool> {
+    const FILES: &[&str] = &[
+        "cc-switch.db",
+        "cc-switch.db-wal",
+        "cc-switch.db-shm",
+        "settings.json",
+        "config.json",
+    ];
+    if dest.exists() || !src.join("cc-switch.db").is_file() {
+        return Ok(false);
+    }
+    // 先写到临时目录再整体改名，避免中途失败留下半个数据目录
+    let staging = dest.with_extension("importing");
+    if staging.exists() {
+        fs::remove_dir_all(&staging)?;
+    }
+    fs::create_dir_all(&staging)?;
+    for name in FILES {
+        let from = src.join(name);
+        if from.is_file() {
+            fs::copy(&from, staging.join(name))?;
+        }
+    }
+    forget_upstream_whats_new(&staging.join("settings.json"));
+    fs::rename(&staging, dest)?;
+    Ok(true)
+}
+
+/// 上游记下的「已看过的更新摘要版本」是 CC Switch 的版本号（4.x），比 Jcc-switch
+/// 自己的版本号大，留着的话本应用的更新摘要永远不会弹，导入时去掉
+fn forget_upstream_whats_new(settings_path: &Path) {
+    let Ok(text) = fs::read_to_string(settings_path) else {
+        return;
+    };
+    let Ok(mut value) = serde_json::from_str::<serde_json::Value>(&text) else {
+        return;
+    };
+    let removed = value
+        .as_object_mut()
+        .and_then(|obj| obj.remove("whatsNewSeenVersion"))
+        .is_some();
+    if removed {
+        if let Ok(out) = serde_json::to_string_pretty(&value) {
+            let _ = fs::write(settings_path, out);
+        }
+    }
+}
+
+/// 获取应用配置目录路径 (~/.jcc-switch)
 pub fn get_app_config_dir() -> PathBuf {
     if let Some(custom) = crate::app_store::get_app_config_dir_override() {
         return custom;
     }
 
-    let default_dir = get_home_dir().join(".cc-switch");
+    let default_dir = get_home_dir().join(crate::config::APP_DIR_NAME);
 
     // 兼容 v3.10.3：当用户环境存在 `HOME` 且与真实用户目录不同，
     // v3.10.3 可能在 `HOME/.cc-switch/` 下创建/使用了数据库。
@@ -338,7 +408,7 @@ pub fn get_app_config_dir() -> PathBuf {
             if let Ok(home_env) = std::env::var("HOME") {
                 let trimmed = home_env.trim();
                 if !trimmed.is_empty() {
-                    let legacy_dir = PathBuf::from(trimmed).join(".cc-switch");
+                    let legacy_dir = PathBuf::from(trimmed).join(crate::config::APP_DIR_NAME);
                     if legacy_dir.join("cc-switch.db").exists() {
                         log::info!(
                             "Detected v3.10.3 legacy database at {}, using it instead of {}",
@@ -693,6 +763,43 @@ pub(crate) fn commit_staged(tmp: &Path, path: &Path) -> Result<(), AppError> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn import_upstream_data_copies_db_once() {
+        let home = tempfile::tempdir().unwrap();
+        let src = home.path().join(UPSTREAM_APP_DIR_NAME);
+        let dest = home.path().join(APP_DIR_NAME);
+        fs::create_dir_all(src.join("backups")).unwrap();
+        fs::write(src.join("cc-switch.db"), b"db").unwrap();
+        fs::write(
+            src.join("settings.json"),
+            br#"{"whatsNewSeenVersion":"4.0.21","language":"zh"}"#,
+        )
+        .unwrap();
+        fs::write(src.join("backups").join("old.json"), b"x").unwrap();
+
+        assert!(import_upstream_data_from(&src, &dest).unwrap());
+        assert_eq!(fs::read(dest.join("cc-switch.db")).unwrap(), b"db");
+        let settings: serde_json::Value =
+            serde_json::from_slice(&fs::read(dest.join("settings.json")).unwrap()).unwrap();
+        assert_eq!(settings, serde_json::json!({ "language": "zh" }));
+        assert!(!dest.join("backups").exists());
+
+        // 目标已存在时不再覆盖
+        fs::write(src.join("cc-switch.db"), b"newer").unwrap();
+        assert!(!import_upstream_data_from(&src, &dest).unwrap());
+        assert_eq!(fs::read(dest.join("cc-switch.db")).unwrap(), b"db");
+    }
+
+    #[test]
+    fn import_upstream_data_skips_without_upstream_db() {
+        let home = tempfile::tempdir().unwrap();
+        let dest = home.path().join(APP_DIR_NAME);
+        assert!(
+            !import_upstream_data_from(&home.path().join(UPSTREAM_APP_DIR_NAME), &dest).unwrap()
+        );
+        assert!(!dest.exists());
+    }
+
     /// 共享的环境变量互斥锁：改 `HOME` / `CC_SWITCH_TEST_HOME` 这类进程级
     /// 状态的测试都必须经它（配合 `#[serial_test::serial]`）。锁必须放在
     /// 函数里经 `OnceLock` 取用——写成某个测试函数体内的 `static` 只对那一个
@@ -1023,7 +1130,7 @@ mod tests {
 
         // 假装 HOME 指向另一处，并且那里有一份 db——正是会触发回退的形状
         let legacy_home = tempfile::tempdir().expect("tempdir");
-        let legacy_dir = legacy_home.path().join(".cc-switch");
+        let legacy_dir = legacy_home.path().join(crate::config::APP_DIR_NAME);
         std::fs::create_dir_all(&legacy_dir).expect("create legacy dir");
         std::fs::write(legacy_dir.join("cc-switch.db"), b"legacy").expect("seed legacy db");
 
@@ -1045,7 +1152,7 @@ mod tests {
             None => std::env::remove_var("HOME"),
         }
 
-        let expected = test_home.path().join(".cc-switch");
+        let expected = test_home.path().join(crate::config::APP_DIR_NAME);
         assert_eq!(
             dir, expected,
             "测试 home 优先：不得回退到 HOME 下的旧库目录"

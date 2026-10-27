@@ -88,11 +88,21 @@ export function resolveWhatsNewLanguage(language: string): WhatsNewLanguage {
     : "en";
 }
 
-/** 官网更新日志：不带版本是列表页。官网只有 zh / en / ja，繁中用简中页面 */
+/** Jcc-switch 自己的版本号从 0.1.0 起，低于 1.0 的都是它的版本，更新日志在本仓库的 GitHub Release */
+const FIRST_UPSTREAM_VERSION = "1.0.0";
+const JCC_RELEASES_URL = "https://github.com/luckySpro/Jcc-switch/releases";
+
+/**
+ * 更新日志链接：Jcc-switch 自己的版本链到 GitHub Release；上游版本链官网，
+ * 不带版本是列表页。官网只有 zh / en / ja，繁中用简中页面
+ */
 export function changelogUrl(
   language: WhatsNewLanguage,
   version?: string,
 ): string {
+  if (version && compareVersions(version, FIRST_UPSTREAM_VERSION) < 0) {
+    return `${JCC_RELEASES_URL}/tag/v${version}`;
+  }
   const siteLanguage = language === "zh-TW" ? "zh" : language;
   const base = `https://ccswitch.io/${siteLanguage}/changelog`;
   return version ? `${base}/${version}` : base;

@@ -11,6 +11,7 @@ import { toast } from "@/lib/toast";
 import { invoke } from "@tauri-apps/api/core";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  ClipboardPaste,
   ExternalLink,
   KeyRound,
   MoreHorizontal,
@@ -80,6 +81,8 @@ import { APP_DISPLAY_NAME, AppGlyph } from "@/components/shell/AppGlyph";
 import { ProfileSwitcher } from "@/components/profiles/ProfileSwitcher";
 import { ProviderList } from "@/components/providers/ProviderList";
 import { AddProviderDialog } from "@/components/providers/AddProviderDialog";
+import { QuickAddDialog } from "@/components/quick-add/QuickAddDialog";
+import { usePasteToQuickAdd } from "@/components/quick-add/usePasteToQuickAdd";
 import {
   hasOpencodeDefinition,
   isNativeOpencodeConfig,
@@ -178,6 +181,10 @@ function App() {
     PROMPT_APP_IDS.includes(sharedFeatureApp) ? sharedFeatureApp : "claude",
   );
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [quickAdd, setQuickAdd] = useState<{ open: boolean; text?: string }>({
+    open: false,
+  });
+  usePasteToQuickAdd((text) => setQuickAdd({ open: true, text }));
   // 供应商搜索面板：页头按钮和 ⌘F 都能打开；换应用或离开供应商页就收起
   const [providerSearchOpen, setProviderSearchOpen] = useState(false);
   const [connectionStatusSlot, setConnectionStatusSlot] =
@@ -1428,6 +1435,16 @@ function App() {
             <Button
               variant="solid"
               size="regular"
+              onClick={() => setQuickAdd({ open: true })}
+            >
+              <ClipboardPaste className="h-4 w-4" />
+              {t("quickAdd.button", { defaultValue: "粘贴 Key" })}
+            </Button>
+          )}
+          {currentView === "providers" && (
+            <Button
+              variant="neutral"
+              size="regular"
               onClick={() => openAddProvider(currentModeView)}
             >
               <Plus className="h-4 w-4" />
@@ -1817,6 +1834,12 @@ function App() {
           </div>
         </main>
       </div>
+
+      <QuickAddDialog
+        open={quickAdd.open}
+        initialText={quickAdd.text}
+        onOpenChange={(open) => setQuickAdd({ open })}
+      />
 
       <AddProviderDialog
         open={isAddOpen}

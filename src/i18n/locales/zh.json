@@ -1109,6 +1109,15 @@
     },
     "data": {
       "location": "存储位置"
+    },
+    "swatch": {
+      "label": "色卡",
+      "clay": "陶土",
+      "graphite": "石墨",
+      "celadon": "青瓷",
+      "indigo": "靛蓝",
+      "rose": "绯红",
+      "original": "上游原版"
     }
   },
   "apps": {
@@ -5075,5 +5084,58 @@
       "description": "配置请求地址、API Key 和模型。已有的自定义供应商会自动显示在这里。"
     },
     "deleteSessionHint": "请在 DeepSeek Harness 中删除此会话，以保持原生历史记录一致。"
+  },
+  "quickAdd": {
+    "button": "粘贴 Key",
+    "subtitle": "支持裸 Key、环境变量、JSON、curl 命令，或「地址 + Key」。带地址时以地址为准。",
+    "title": {
+      "paste": "粘贴你的 Key",
+      "probe": "正在识别",
+      "confirm": "确认模型",
+      "done": "已写入，可以开用了"
+    },
+    "step": {
+      "paste": "粘贴",
+      "probe": "识别",
+      "confirm": "确认模型",
+      "done": "完成"
+    },
+    "status": {
+      "probing": "检测中",
+      "hit": "命中",
+      "rejected": "不匹配",
+      "error": "失败",
+      "cancelled": "已取消"
+    },
+    "slot": {
+      "main": "主模型",
+      "opus": "Opus",
+      "sonnet": "Sonnet",
+      "haiku": "Haiku",
+      "model": "模型"
+    },
+    "pasteClipboard": "从剪贴板粘贴",
+    "clipboardFailed": "无法读取剪贴板，请直接在输入框里粘贴",
+    "detect": "识别并检测",
+    "back": "返回修改",
+    "another": "换一个 Key",
+    "addAnother": "再添加一个",
+    "saveActivate": "保存并启用",
+    "saveOnly": "保存",
+    "saveFailed": "保存失败：{{error}}",
+    "activate": "保存后立即启用（写入配置文件）",
+    "filesPreview": "查看将要修改的文件",
+    "noApps": "未选择应用",
+    "doneActive": "已启用。打开新的终端窗口运行 claude / codex / gemini 即可使用。",
+    "doneSaved": "已保存到供应商列表，需要时点「启用」。",
+    "noKey": "还没找到 Key。",
+    "unknownFormat": "认不出这个 Key 属于哪家。请在下一行补上接口地址（例如 https://api.example.com/v1）。",
+    "willUseUrl": "将按你粘贴的地址检测：{{hosts}}",
+    "willProbeOne": "看起来是 {{name}}，只验证这一家：{{hosts}}",
+    "willProbeMany": "可能属于 {{count}} 家，Key 只会发往这些官方域名：{{hosts}}",
+    "modelCount": "{{count}} 个对话模型",
+    "unsupported": "该供应商不提供这个应用需要的协议",
+    "needsProxy": "需要开启本地代理做协议转换，默认不勾选",
+    "noModels": "没有适合这个应用的模型"
   }
 }

@@ -42,6 +42,7 @@ mod prompt;
 mod prompt_files;
 mod provider;
 mod proxy;
+mod quick_add;
 mod services;
 mod session_manager;
 mod settings;
@@ -526,6 +527,7 @@ pub fn run() {
 
             // 预先刷新 Store 覆盖配置，确保后续路径读取正确（日志/数据库等）
             app_store::refresh_app_config_dir_override(app.handle());
+            crate::config::import_upstream_data_once();
             panic_hook::init_app_config_dir(crate::config::get_app_config_dir());
 
             // 初始化日志（输出到 <app_config_dir>/logs/cc-switch.log）
@@ -1628,6 +1630,8 @@ pub fn run() {
             // Fetch OpenAI-compatible and Anthropic model lists. Response data structure:
             // data[].id, data[]?.owned_by. Special: supports Zhipu OpenAI Responses models[].slug.
             commands::fetch_models_for_config,
+            commands::quick_add_preview,
+            commands::quick_add_detect,
             commands::get_agy_models,
             commands::get_opencode_models,
             // ours: endpoint speed test + custom endpoint management

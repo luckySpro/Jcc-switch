@@ -22,6 +22,21 @@ English | [中文](README_ZH.md) | [日本語](README_JA.md) | [Deutsch](README_
 
 </div>
 
+## Jcc-switch: paste a key
+
+> This repository is a customized build of [farion1231/cc-switch](https://github.com/farion1231/cc-switch), maintained by M&J Group under the MIT license with all upstream credits kept. It ships as Jcc Switch and can be installed next to CC Switch.
+
+Click **Paste key** on the home screen, or press Ctrl/⌘+V anywhere outside a text field:
+
+1. Paste a key, or env vars, JSON, a curl command, or a URL plus key. A pasted http(s) URL is used as a compatible endpoint.
+2. Jcc Switch guesses the provider from the key format. When several providers fit, it asks only their official hosts for the model list and stops at the first match.
+3. Models are assigned to Claude Code (main / Opus / Sonnet / Haiku), Codex and Gemini CLI; you can change them.
+4. Save and switch writes `~/.claude/settings.json`, `~/.codex/config.toml` and `~/.gemini/.env`.
+
+Settings → General has five color themes (Clay, Graphite, Celadon, Indigo, Rose) plus the original palette. Detection rules live in `src-tauri/resources/key_rules.json`; a file of the same shape at `~/.jcc-switch/key_rules.json` overrides or extends them.
+
+![Confirm models](docs/screenshots/quick-add-confirm.png)
+
 ## ❤️Sponsor
 
 > [Want to appear here?](mailto:support@ccswitch.io)

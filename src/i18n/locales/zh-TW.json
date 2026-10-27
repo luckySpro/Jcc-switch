@@ -1110,6 +1110,15 @@
     },
     "data": {
       "location": "儲存位置"
+    },
+    "swatch": {
+      "label": "色卡",
+      "clay": "陶土",
+      "graphite": "石墨",
+      "celadon": "青瓷",
+      "indigo": "靛藍",
+      "rose": "緋紅",
+      "original": "上游原版"
     }
   },
   "apps": {
@@ -5076,5 +5085,58 @@
       "description": "設定請求網址、API Key 和模型。現有的自訂供應商會自動顯示在這裡。"
     },
     "deleteSessionHint": "請在 DeepSeek Harness 中刪除此工作階段，以保持原生歷史記錄一致。"
+  },
+  "quickAdd": {
+    "button": "貼上 Key",
+    "subtitle": "支援純 Key、環境變數、JSON、curl 指令，或「位址 + Key」。帶位址時以位址為準。",
+    "title": {
+      "paste": "貼上你的 Key",
+      "probe": "正在識別",
+      "confirm": "確認模型",
+      "done": "已寫入，可以開始使用"
+    },
+    "step": {
+      "paste": "貼上",
+      "probe": "識別",
+      "confirm": "確認模型",
+      "done": "完成"
+    },
+    "status": {
+      "probing": "檢測中",
+      "hit": "命中",
+      "rejected": "不相符",
+      "error": "失敗",
+      "cancelled": "已取消"
+    },
+    "slot": {
+      "main": "主模型",
+      "opus": "Opus",
+      "sonnet": "Sonnet",
+      "haiku": "Haiku",
+      "model": "模型"
+    },
+    "pasteClipboard": "從剪貼簿貼上",
+    "clipboardFailed": "無法讀取剪貼簿，請直接在輸入框貼上",
+    "detect": "識別並檢測",
+    "back": "返回修改",
+    "another": "換一個 Key",
+    "addAnother": "再新增一個",
+    "saveActivate": "儲存並啟用",
+    "saveOnly": "儲存",
+    "saveFailed": "儲存失敗：{{error}}",
+    "activate": "儲存後立即啟用（寫入設定檔）",
+    "filesPreview": "查看將要修改的檔案",
+    "noApps": "未選擇應用",
+    "doneActive": "已啟用。開啟新的終端機視窗執行 claude / codex / gemini 即可使用。",
+    "doneSaved": "已儲存到供應商列表，需要時點「啟用」。",
+    "noKey": "還沒找到 Key。",
+    "unknownFormat": "認不出這個 Key 屬於哪家。請在下一行補上介面位址（例如 https://api.example.com/v1）。",
+    "willUseUrl": "將依你貼上的位址檢測：{{hosts}}",
+    "willProbeOne": "看起來是 {{name}}，只驗證這一家：{{hosts}}",
+    "willProbeMany": "可能屬於 {{count}} 家，Key 只會送往這些官方網域：{{hosts}}",
+    "modelCount": "{{count}} 個對話模型",
+    "unsupported": "該供應商不提供這個應用需要的協定",
+    "needsProxy": "需要開啟本機代理做協定轉換，預設不勾選",
+    "noModels": "沒有適合這個應用的模型"
   }
 }

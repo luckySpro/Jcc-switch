@@ -1109,6 +1109,15 @@
     },
     "data": {
       "location": "Location"
+    },
+    "swatch": {
+      "label": "Color theme",
+      "clay": "Clay",
+      "graphite": "Graphite",
+      "celadon": "Celadon",
+      "indigo": "Indigo",
+      "rose": "Rose",
+      "original": "Original"
     }
   },
   "apps": {
@@ -5075,5 +5084,58 @@
       "description": "Configure an endpoint, API key and models. Existing custom providers appear here automatically."
     },
     "deleteSessionHint": "Delete this session in DeepSeek Harness to keep its history consistent."
+  },
+  "quickAdd": {
+    "button": "Paste key",
+    "subtitle": "Paste a bare key, env vars, JSON, a curl command, or a URL plus key. A pasted URL is used as the endpoint.",
+    "title": {
+      "paste": "Paste your key",
+      "probe": "Detecting",
+      "confirm": "Confirm models",
+      "done": "Saved and ready"
+    },
+    "step": {
+      "paste": "Paste",
+      "probe": "Detect",
+      "confirm": "Confirm",
+      "done": "Done"
+    },
+    "status": {
+      "probing": "Checking",
+      "hit": "Match",
+      "rejected": "No match",
+      "error": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "slot": {
+      "main": "Main",
+      "opus": "Opus",
+      "sonnet": "Sonnet",
+      "haiku": "Haiku",
+      "model": "Model"
+    },
+    "pasteClipboard": "Paste from clipboard",
+    "clipboardFailed": "Couldn't read the clipboard. Paste into the box instead.",
+    "detect": "Detect",
+    "back": "Back",
+    "another": "Use another key",
+    "addAnother": "Add another",
+    "saveActivate": "Save and switch",
+    "saveOnly": "Save",
+    "saveFailed": "Save failed: {{error}}",
+    "activate": "Switch to it after saving (writes the config files)",
+    "filesPreview": "Files that will change",
+    "noApps": "No app selected",
+    "doneActive": "Switched. Open a new terminal and run claude, codex or gemini.",
+    "doneSaved": "Saved to the provider list. Switch to it when you need it.",
+    "noKey": "No key found yet.",
+    "unknownFormat": "Can't tell which provider this key belongs to. Add the API URL on the next line, for example https://api.example.com/v1.",
+    "willUseUrl": "Will check the URL you pasted: {{hosts}}",
+    "willProbeOne": "Looks like {{name}}. Only this host will be checked: {{hosts}}",
+    "willProbeMany": "Could belong to {{count}} providers. The key is only sent to these official hosts: {{hosts}}",
+    "modelCount": "{{count}} chat models",
+    "unsupported": "This provider doesn't offer the protocol this app needs",
+    "needsProxy": "Needs the local proxy to convert the protocol, so it's off by default",
+    "noModels": "No suitable model for this app"
   }
 }

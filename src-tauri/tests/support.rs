@@ -42,7 +42,7 @@ pub fn reset_test_fs() {
     for sub in [
         ".claude",
         ".codex",
-        ".cc-switch",
+        ".jcc-switch",
         ".gemini",
         ".grok",
         ".config",
