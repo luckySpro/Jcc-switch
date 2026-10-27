@@ -2652,7 +2652,7 @@ dependencies = [
 
 [[package]]
 name = "jcc-switch"
-version = "4.0.21"
+version = "4.1.0"
 dependencies = [
  "anyhow",
  "arboard",

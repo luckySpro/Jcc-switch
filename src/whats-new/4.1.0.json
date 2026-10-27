@@ -1,0 +1,33 @@
+{
+  "version": "4.1.0",
+  "items": [
+    {
+      "type": "new",
+      "zh": "粘贴 Key 自动识别供应商、拉取模型并写入配置",
+      "zh-TW": "貼上 Key 自動識別供應商、拉取模型並寫入設定",
+      "en": "Paste a key to detect the provider, fetch its models and write the config",
+      "ja": "キーを貼り付けるだけでプロバイダーを判別し、モデル取得と設定書き込みまで自動"
+    },
+    {
+      "type": "new",
+      "zh": "粘贴中转站地址和 Key，按兼容接口自动配置",
+      "zh-TW": "貼上中轉站位址和 Key，按相容介面自動設定",
+      "en": "Paste a relay URL with its key to set it up as a compatible endpoint",
+      "ja": "中継サイトの URL とキーを貼ると互換エンドポイントとして自動設定"
+    },
+    {
+      "type": "new",
+      "zh": "新增陶土、石墨、青瓷、靛蓝、绯红五套色卡",
+      "zh-TW": "新增陶土、石墨、青瓷、靛藍、緋紅五套色卡",
+      "en": "Five new color swatches: Clay, Graphite, Celadon, Indigo and Rose",
+      "ja": "クレイ・グラファイト・青磁・インディゴ・ローズの 5 つのカラーを追加"
+    },
+    {
+      "type": "improve",
+      "zh": "独立数据目录 ~/.jcc-switch，首次启动导入 CC Switch 数据",
+      "zh-TW": "獨立資料目錄 ~/.jcc-switch，首次啟動匯入 CC Switch 資料",
+      "en": "Own data folder ~/.jcc-switch; CC Switch data is imported on first launch",
+      "ja": "専用データフォルダ ~/.jcc-switch。初回起動時に CC Switch のデータを取り込み"
+    }
+  ]
+}
