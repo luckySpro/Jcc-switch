@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "providers": [
+    {
+      "id": "anthropic",
+      "name": "Anthropic",
+      "icon": "anthropic",
+      "iconColor": "#D4915D",
+      "websiteUrl": "https://console.anthropic.com",
+      "keyPatterns": ["^sk-ant-api03-[A-Za-z0-9_-]{20,}$"],
+      "confidence": "high",
+      "hosts": ["api.anthropic.com"],
+      "models": {
+        "baseUrl": "https://api.anthropic.com",
+        "apiFormat": "anthropic-messages",
+        "headers": { "anthropic-version": "2023-06-01" }
+      },
+      "apps": {
+        "claude": { "baseUrl": "https://api.anthropic.com", "apiKeyField": "ANTHROPIC_API_KEY" }
+      }
+    },
+    {
+      "id": "openai",
+      "name": "OpenAI",
+      "icon": "openai",
+      "iconColor": "#00A67E",
+      "websiteUrl": "https://platform.openai.com",
+      "keyPatterns": ["^sk-(proj|svcacct|admin)-[A-Za-z0-9_-]{20,}$"],
+      "confidence": "high",
+      "hosts": ["api.openai.com"],
+      "models": { "baseUrl": "https://api.openai.com/v1" },
+      "apps": {
+        "codex": { "baseUrl": "https://api.openai.com/v1" }
+      }
+    },
+    {
+      "id": "openrouter",
+      "name": "OpenRouter",
+      "icon": "openrouter",
+      "iconColor": "#6566F1",
+      "websiteUrl": "https://openrouter.ai",
+      "keyPatterns": ["^sk-or-v1-[0-9a-f]{64}$"],
+      "confidence": "high",
+      "hosts": ["openrouter.ai"],
+      "models": { "baseUrl": "https://openrouter.ai/api/v1" },
+      "apps": {
+        "claude": { "preset": "OpenRouter", "baseUrl": "https://openrouter.ai/api" },
+        "codex": { "preset": "OpenRouter", "baseUrl": "https://openrouter.ai/api/v1" },
+        "gemini": { "preset": "OpenRouter", "baseUrl": "https://openrouter.ai/api" }
+      }
+    },
+    {
+      "id": "gemini",
+      "name": "Google Gemini",
+      "icon": "gemini",
+      "iconColor": "#4285F4",
+      "websiteUrl": "https://aistudio.google.com",
+      "keyPatterns": ["^AIza[0-9A-Za-z_-]{35}$"],
+      "confidence": "high",
+      "hosts": ["generativelanguage.googleapis.com"],
+      "models": {
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "apiFormat": "google-generative-ai"
+      },
+      "apps": {
+        "gemini": {}
+      }
+    },
+    {
+      "id": "xai",
+      "name": "xAI (Grok)",
+      "icon": "xai",
+      "iconColor": "#000000",
+      "websiteUrl": "https://console.x.ai",
+      "keyPatterns": ["^xai-[A-Za-z0-9]{20,}$"],
+      "confidence": "high",
+      "hosts": ["api.x.ai"],
+      "models": { "baseUrl": "https://api.x.ai/v1" },
+      "apps": {
+        "codex": { "preset": "xAI (Grok)", "baseUrl": "https://api.x.ai/v1" }
+      }
+    },
+    {
+      "id": "groq",
+      "name": "Groq",
+      "icon": "groq",
+      "iconColor": "#F55036",
+      "websiteUrl": "https://console.groq.com",
+      "keyPatterns": ["^gsk_[A-Za-z0-9]{20,}$"],
+      "confidence": "high",
+      "hosts": ["api.groq.com"],
+      "models": { "baseUrl": "https://api.groq.com/openai/v1" },
+      "apps": {
+        "codex": { "preset": "Groq", "baseUrl": "https://api.groq.com/openai/v1", "needsProxy": true }
+      }
+    },
+    {
+      "id": "zhipu",
+      "name": "智谱 GLM",
+      "icon": "zhipu",
+      "iconColor": "#0F62FE",
+      "websiteUrl": "https://open.bigmodel.cn",
+      "keyPatterns": ["^[0-9a-f]{32}\\.[A-Za-z0-9]{16}$"],
+      "confidence": "medium",
+      "hosts": ["open.bigmodel.cn"],
+      "models": { "baseUrl": "https://open.bigmodel.cn/api/paas/v4" },
+      "apps": {
+        "claude": { "preset": "Zhipu GLM", "baseUrl": "https://open.bigmodel.cn/api/anthropic" },
+        "codex": { "preset": "Zhipu GLM", "baseUrl": "https://open.bigmodel.cn/api/v1" }
+      }
+    },
+    {
+      "id": "zai",
+      "name": "Z.ai (GLM 国际)",
+      "icon": "zhipu",
+      "iconColor": "#0F62FE",
+      "websiteUrl": "https://z.ai",
+      "keyPatterns": ["^[0-9a-f]{32}\\.[A-Za-z0-9]{16}$"],
+      "confidence": "medium",
+      "hosts": ["api.z.ai"],
+      "models": { "baseUrl": "https://api.z.ai/api/paas/v4" },
+      "apps": {
+        "claude": { "preset": "Zhipu GLM en", "baseUrl": "https://api.z.ai/api/anthropic" },
+        "codex": { "preset": "Zhipu GLM en", "baseUrl": "https://api.z.ai/api/v1" }
+      }
+    },
+    {
+      "id": "volcengine",
+      "name": "火山方舟",
+      "icon": "doubao",
+      "iconColor": "#3370FF",
+      "websiteUrl": "https://console.volcengine.com/ark",
+      "keyPatterns": ["^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"],
+      "confidence": "medium",
+      "hosts": ["ark.cn-beijing.volces.com"],
+      "models": { "baseUrl": "https://ark.cn-beijing.volces.com/api/v3" },
+      "apps": {
+        "claude": { "preset": "Volcengine Doubao", "baseUrl": "https://ark.cn-beijing.volces.com/api/compatible" },
+        "codex": { "preset": "Volcengine Doubao", "baseUrl": "https://ark.cn-beijing.volces.com/api/v3" }
+      }
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "icon": "deepseek",
+      "iconColor": "#1E88E5",
+      "websiteUrl": "https://platform.deepseek.com",
+      "keyPatterns": ["^sk-[0-9a-f]{32}$"],
+      "confidence": "low",
+      "hosts": ["api.deepseek.com"],
+      "models": { "baseUrl": "https://api.deepseek.com" },
+      "apps": {
+        "claude": { "preset": "DeepSeek", "baseUrl": "https://api.deepseek.com/anthropic" },
+        "codex": { "preset": "DeepSeek", "baseUrl": "https://api.deepseek.com" }
+      }
+    },
+    {
+      "id": "dashscope",
+      "name": "阿里云百炼",
+      "icon": "qwen",
+      "iconColor": "#615CED",
+      "websiteUrl": "https://bailian.console.aliyun.com",
+      "keyPatterns": ["^sk-[0-9a-f]{32}$"],
+      "confidence": "low",
+      "hosts": ["dashscope.aliyuncs.com"],
+      "models": { "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1" },
+      "apps": {
+        "claude": { "baseUrl": "https://dashscope.aliyuncs.com/apps/anthropic" },
+        "codex": { "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1" }
+      }
+    },
+    {
+      "id": "moonshot",
+      "name": "Kimi（月之暗面）",
+      "icon": "kimi",
+      "iconColor": "#6366F1",
+      "websiteUrl": "https://platform.moonshot.cn",
+      "keyPatterns": ["^sk-[A-Za-z0-9]{48}$"],
+      "confidence": "low",
+      "hosts": ["api.moonshot.cn"],
+      "models": { "baseUrl": "https://api.moonshot.cn/v1" },
+      "apps": {
+        "claude": { "preset": "Kimi", "baseUrl": "https://api.moonshot.cn/anthropic" },
+        "codex": { "preset": "Kimi", "baseUrl": "https://api.moonshot.cn/v1" }
+      }
+    },
+    {
+      "id": "moonshot-global",
+      "name": "Kimi Global",
+      "icon": "kimi",
+      "iconColor": "#6366F1",
+      "websiteUrl": "https://platform.moonshot.ai",
+      "keyPatterns": ["^sk-[A-Za-z0-9]{48}$"],
+      "confidence": "low",
+      "hosts": ["api.moonshot.ai"],
+      "models": { "baseUrl": "https://api.moonshot.ai/v1" },
+      "apps": {
+        "claude": { "preset": "Kimi Global", "baseUrl": "https://api.moonshot.ai/anthropic" },
+        "codex": { "preset": "Kimi Global", "baseUrl": "https://api.moonshot.ai/v1" }
+      }
+    },
+    {
+      "id": "siliconflow",
+      "name": "硅基流动",
+      "icon": "siliconflow",
+      "iconColor": "#6E29F6",
+      "websiteUrl": "https://cloud.siliconflow.cn",
+      "keyPatterns": ["^sk-[a-z]{48}$"],
+      "confidence": "low",
+      "hosts": ["api.siliconflow.cn"],
+      "models": { "baseUrl": "https://api.siliconflow.cn/v1" },
+      "apps": {
+        "claude": { "preset": "SiliconFlow", "baseUrl": "https://api.siliconflow.cn" },
+        "codex": { "preset": "SiliconFlow", "baseUrl": "https://api.siliconflow.cn/v1", "needsProxy": true }
+      }
+    },
+    {
+      "id": "minimax",
+      "name": "MiniMax",
+      "icon": "minimax",
+      "iconColor": "#E73562",
+      "websiteUrl": "https://platform.minimaxi.com",
+      "keyPatterns": ["^eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}$", "^sk-(api|cp)-[A-Za-z0-9_-]{20,}$"],
+      "confidence": "low",
+      "hosts": ["api.minimax.cn", "api.minimaxi.com"],
+      "models": { "baseUrl": "https://api.minimax.cn/v1" },
+      "apps": {
+        "claude": { "preset": "MiniMax", "baseUrl": "https://api.minimax.cn/anthropic" },
+        "codex": { "preset": "MiniMax", "baseUrl": "https://api.minimax.cn/v1" }
+      }
+    },
+    {
+      "id": "minimax-global",
+      "name": "MiniMax Global",
+      "icon": "minimax",
+      "iconColor": "#E73562",
+      "websiteUrl": "https://www.minimax.io",
+      "keyPatterns": ["^eyJ[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}\\.[A-Za-z0-9_-]{10,}$", "^sk-(api|cp)-[A-Za-z0-9_-]{20,}$"],
+      "confidence": "low",
+      "hosts": ["api.minimax.io"],
+      "models": { "baseUrl": "https://api.minimax.io/v1" },
+      "apps": {
+        "claude": { "preset": "MiniMax en", "baseUrl": "https://api.minimax.io/anthropic" },
+        "codex": { "preset": "MiniMax en", "baseUrl": "https://api.minimax.io/v1" }
+      }
+    }
+  ]
+}

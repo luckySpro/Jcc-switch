@@ -1851,7 +1851,7 @@ async fn drain_legacy_backup(state: &AppState, app: &AppType) -> bool {
         }
     };
     let dir = crate::config::get_home_dir()
-        .join(".cc-switch")
+        .join(crate::config::APP_DIR_NAME)
         .join("backups")
         .join("proxy-live-backup");
     let stamp = chrono::Utc::now().format("%Y%m%dT%H%M%SZ");
