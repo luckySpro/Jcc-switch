@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "CC Switch",
+    "title": "Jcc Switch",
     "description": "Claude Code / Codex / Gemini CLI 全方位輔助工具"
   },
   "common": {
@@ -5137,6 +5137,8 @@
     "modelCount": "{{count}} 個對話模型",
     "unsupported": "該供應商不提供這個應用需要的協定",
     "needsProxy": "需要開啟本機代理做協定轉換，預設不勾選",
-    "noModels": "沒有適合這個應用的模型"
+    "noModels": "沒有適合這個應用的模型",
+    "typeModel": "沒挑出合適的模型，可以手動填寫模型名後啟用",
+    "modelRequired": "請填寫模型名稱"
   }
 }

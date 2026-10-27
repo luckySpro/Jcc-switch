@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "CC Switch",
+    "title": "Jcc Switch",
     "description": "Claude Code, Codex ve Gemini CLI için Hepsi Bir Arada Asistan"
   },
   "common": {
@@ -5092,6 +5092,8 @@
     "modelCount": "{{count}} chat models",
     "unsupported": "This provider doesn't offer the protocol this app needs",
     "needsProxy": "Needs the local proxy to convert the protocol, so it's off by default",
-    "noModels": "No suitable model for this app"
+    "noModels": "No suitable model for this app",
+    "typeModel": "No model picked for this app. Type a model name to enable it",
+    "modelRequired": "Enter a model name"
   }
 }

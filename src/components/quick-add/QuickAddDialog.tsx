@@ -25,6 +25,7 @@ import {
 import { generateUUID } from "@/utils/uuid";
 import { cn } from "@/lib/utils";
 import {
+  appsMissingModel,
   buildQuickAddProviders,
   defaultSelection,
   QUICK_ADD_FILES,
@@ -145,6 +146,9 @@ export function QuickAddDialog({
       result && selection ? buildQuickAddProviders(result, selection) : [],
     [result, selection],
   );
+  const missingModel = selection
+    ? appsMissingModel(selection).length > 0
+    : false;
 
   const save = useCallback(async () => {
     if (!built.length) return;
@@ -313,7 +317,7 @@ export function QuickAddDialog({
               </Button>
               <Button
                 variant="solid"
-                disabled={!built.length || saving}
+                disabled={!built.length || missingModel || saving}
                 onClick={save}
               >
                 {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
@@ -464,6 +468,10 @@ function ProbeRow({
   );
 }
 
+function hasSuggestion(result: DetectResult, app: QuickAddApp): boolean {
+  return result.suggested[app] != null;
+}
+
 function ConfirmView({
   result,
   selection,
@@ -587,6 +595,20 @@ function ConfirmView({
                     t("quickAdd.noModels", {
                       defaultValue: "没有适合这个应用的模型",
                     })}
+                </span>
+              )}
+              {sel && !note && !hasSuggestion(result, app) && (
+                <span className="text-xs text-fg-2">
+                  {t("quickAdd.typeModel", {
+                    defaultValue: "没挑出合适的模型，可以手动填写模型名后启用",
+                  })}
+                </span>
+              )}
+              {enabled && appsMissingModel(selection).includes(app) && (
+                <span className="text-xs text-danger-text">
+                  {t("quickAdd.modelRequired", {
+                    defaultValue: "请填写模型名",
+                  })}
                 </span>
               )}
             </div>
