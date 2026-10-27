@@ -207,6 +207,16 @@ module.exports = {
           "system-ui",
           "sans-serif",
         ],
+        // Jcc-switch：标题用衬线字体，接近 Claude 应用的气质；本地字体优先，保证离线可用
+        serif: [
+          '"Source Serif 4"',
+          '"Songti SC"',
+          '"Noto Serif SC"',
+          '"Noto Serif CJK SC"',
+          "Georgia",
+          '"Times New Roman"',
+          "serif",
+        ],
         mono: [
           "ui-monospace",
           "SFMono-Regular",

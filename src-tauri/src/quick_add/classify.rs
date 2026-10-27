@@ -211,8 +211,10 @@ pub fn suggest(models: &[String]) -> Suggestions {
     let codex = best_with(&models, "gpt", &["codex"])
         .or_else(|| {
             best(models.iter().filter(|m| {
+                // OpenRouter 等聚合站带厂商前缀：openai/gpt-x
                 let l = m.to_ascii_lowercase();
-                l.starts_with("gpt-") && !has_any(&l, FAST_MARKERS)
+                let name = l.rsplit('/').next().unwrap_or(&l);
+                name.starts_with("gpt-") && !has_any(name, FAST_MARKERS)
             }))
         })
         .or_else(|| {
@@ -322,6 +324,27 @@ mod tests {
         assert_eq!(c.main, "kimi-k2.7-code");
         assert_eq!(c.haiku, "kimi-k2.7-code");
         assert_eq!(s.codex.as_deref(), Some("kimi-k2.7-code"));
+    }
+
+    #[test]
+    fn aggregator_prefixed_models() {
+        let s = suggest(&v(&[
+            "openai/gpt-6.1-sol",
+            "openai/gpt-6-mini",
+            "anthropic/claude-sonnet-5.5",
+            "google/gemini-3.8-flash",
+        ]));
+        assert_eq!(s.codex.as_deref(), Some("openai/gpt-6.1-sol"));
+        assert_eq!(s.claude.unwrap().main, "anthropic/claude-sonnet-5.5");
+        assert_eq!(s.gemini.as_deref(), Some("google/gemini-3.8-flash"));
+    }
+
+    #[test]
+    fn gemini_is_not_a_fast_model_by_name() {
+        let s = suggest(&v(&["gemini-3.6-pro", "gemini-3.6-flash"]));
+        let c = s.claude.unwrap();
+        assert_eq!(c.main, "gemini-3.6-pro");
+        assert_eq!(c.haiku, "gemini-3.6-flash");
     }
 
     #[test]

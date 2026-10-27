@@ -22,6 +22,27 @@
 
 </div>
 
+## Jcc-switch：一键贴 Key
+
+> 本仓库是 [farion1231/cc-switch](https://github.com/farion1231/cc-switch) 的定制版（M&J Group 维护，MIT 许可，保留上游全部署名），产品名 Jcc Switch，可与 CC Switch 同时安装。
+
+点首页的「粘贴 Key」，或在主界面空白处直接按 Ctrl/⌘+V：
+
+1. 贴入 Key（也可以是环境变量、JSON、curl 命令，或「地址 + Key」）。内容里带 http(s) 地址时以该地址为准，按兼容接口处理。
+2. Jcc Switch 按 Key 格式判断供应商；认不准时只向候选供应商的官方域名请求模型列表，命中即停。
+3. 自动给 Claude Code（主模型 / Opus / Sonnet / Haiku）、Codex、Gemini CLI 分配模型，可改。
+4. 保存并启用，写入 `~/.claude/settings.json`、`~/.codex/config.toml`、`~/.gemini/.env`。
+
+设置 → 通用里可切换五张色卡（陶土、石墨、青瓷、靛蓝、绯红）或上游原版配色。识别规则见 `src-tauri/resources/key_rules.json`，在数据目录 `~/.jcc-switch/key_rules.json` 放同格式文件可覆盖或新增。
+
+| 识别 | 确认模型 |
+| --- | --- |
+| ![识别](docs/screenshots/quick-add-probe.png) | ![确认](docs/screenshots/quick-add-confirm.png) |
+| 深色 | 窄窗口（青瓷） |
+| ![深色](docs/screenshots/quick-add-confirm-dark.png) | ![窄窗口](docs/screenshots/quick-add-narrow.png) |
+
+![色卡](docs/screenshots/settings-swatches.png)
+
 ## ❤️赞助商
 
 > [想出现在这里？](mailto:support@ccswitch.io)
