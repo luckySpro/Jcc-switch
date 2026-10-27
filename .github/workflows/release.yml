@@ -4,11 +4,22 @@ on:
   push:
     tags:
       - 'v*'
-  # 手动触发即干跑：完整编译、签名、公证，产物只留在 workflow 里，不建 GitHub Release
+  # 手动触发默认干跑：完整编译、签名、公证，产物只留在 workflow 里，不建 GitHub Release。
+  # 填了 tag 才正式发布：在当前分支的提交上建这个 tag 和 Release（用于不能直接推 tag 的环境）
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "正式发布的 tag（如 v0.1.0）；留空为干跑"
+        required: false
+        default: ""
 
 permissions:
   contents: write
+
+env:
+  # 产物命名和发布用的版本：手动发布时取输入的 tag，否则是触发的 ref 名
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+  IS_PUBLISH: ${{ (github.event_name == 'push' && github.ref_type == 'tag') || (github.event_name == 'workflow_dispatch' && inputs.tag != '') }}
 
 concurrency:
   # 带上事件名：手动干跑也能选 tag，和正式发布同组会把正在跑的发布取消掉
@@ -29,9 +40,9 @@ jobs:
 
       # 手动干跑可以在任意分支上跑，那时这一版的摘要可能还没写，只在推 tag 时要求存在
       - name: Require this version's summary
-        if: github.event_name == 'push' && github.ref_type == 'tag'
+        if: env.IS_PUBLISH == 'true'
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ env.RELEASE_TAG }}
         run: |
           set -euo pipefail
           file="src/whats-new/${TAG#v}.json"
@@ -222,7 +233,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Force -Path release-assets | Out-Null
           # e.g., v3.5.0；手动干跑时是分支名，斜杠会被当成目录，换成 -
-          $VERSION = $env:GITHUB_REF_NAME -replace '/', '-'
+          $VERSION = $env:RELEASE_TAG -replace '/', '-'
           $isArm64 = $env:WINDOWS_RELEASE_ARCH -eq 'arm64'
           $targetRoot = if ($isArm64) { 'src-tauri/target/aarch64-pc-windows-msvc/release' } else { 'src-tauri/target/release' }
           $assetSuffix = if ($isArm64) { '-arm64' } else { '' }
@@ -307,7 +318,7 @@ jobs:
           set -euxo pipefail
           mkdir -p release-assets
           # e.g., v3.5.0；手动干跑时是分支名，斜杠会被当成目录，换成 -
-          VERSION="${GITHUB_REF_NAME//\//-}"
+          VERSION="${RELEASE_TAG//\//-}"
           ARCH="${{ matrix.arch || 'x86_64' }}"
           # Updater artifact: AppImage（含对应 .sig）
           APPIMAGE=$(find src-tauri/target/release/bundle -name "*.AppImage" | head -1 || true)
@@ -617,7 +628,7 @@ jobs:
           set -euxo pipefail
           mkdir -p release-assets
           # e.g., v3.5.0；手动干跑时是分支名，斜杠会被当成目录，换成 -
-          VERSION="${GITHUB_REF_NAME//\//-}"
+          VERSION="${RELEASE_TAG//\//-}"
 
           # Locate bundle artifacts
           TAR_GZ=""; APP_PATH=""
@@ -813,7 +824,7 @@ jobs:
     needs: [release, macos-release]
     # 只有推 tag 才发布。手动触发时也能选 tag 作为运行版本，单看 ref_type 会把干跑当成正式发布，
     # 覆盖已发布 release 的正文和安装包
-    if: github.event_name == 'push' && github.ref_type == 'tag'
+    if: (github.event_name == 'push' && github.ref_type == 'tag') || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
     permissions:
       contents: write
     steps:
@@ -838,7 +849,7 @@ jobs:
       - name: Generate latest.json
         env:
           REPO: ${{ github.repository }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ env.RELEASE_TAG }}
         run: |
           set -euo pipefail
           VERSION="${TAG#v}"
@@ -966,7 +977,7 @@ jobs:
           mv "$tmp_json" release-assets/latest.json
       - name: Write release notes
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ env.RELEASE_TAG }}
         run: |
           set -euo pipefail
           notes="docs/release-notes/${TAG}-zh.md"
@@ -988,8 +999,9 @@ jobs:
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Jcc Switch ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Jcc Switch ${{ env.RELEASE_TAG }}
           prerelease: false
           body_path: release-body.md
           files: release-assets/*
