@@ -354,8 +354,29 @@ fn import_upstream_data_from(src: &Path, dest: &Path) -> std::io::Result<bool> {
             fs::copy(&from, staging.join(name))?;
         }
     }
+    forget_upstream_whats_new(&staging.join("settings.json"));
     fs::rename(&staging, dest)?;
     Ok(true)
+}
+
+/// 上游记下的「已看过的更新摘要版本」是 CC Switch 的版本号（4.x），比 Jcc-switch
+/// 自己的版本号大，留着的话本应用的更新摘要永远不会弹，导入时去掉
+fn forget_upstream_whats_new(settings_path: &Path) {
+    let Ok(text) = fs::read_to_string(settings_path) else {
+        return;
+    };
+    let Ok(mut value) = serde_json::from_str::<serde_json::Value>(&text) else {
+        return;
+    };
+    let removed = value
+        .as_object_mut()
+        .and_then(|obj| obj.remove("whatsNewSeenVersion"))
+        .is_some();
+    if removed {
+        if let Ok(out) = serde_json::to_string_pretty(&value) {
+            let _ = fs::write(settings_path, out);
+        }
+    }
 }
 
 /// 获取应用配置目录路径 (~/.jcc-switch)
@@ -749,12 +770,18 @@ mod tests {
         let dest = home.path().join(APP_DIR_NAME);
         fs::create_dir_all(src.join("backups")).unwrap();
         fs::write(src.join("cc-switch.db"), b"db").unwrap();
-        fs::write(src.join("settings.json"), b"{}").unwrap();
+        fs::write(
+            src.join("settings.json"),
+            br#"{"whatsNewSeenVersion":"4.0.21","language":"zh"}"#,
+        )
+        .unwrap();
         fs::write(src.join("backups").join("old.json"), b"x").unwrap();
 
         assert!(import_upstream_data_from(&src, &dest).unwrap());
         assert_eq!(fs::read(dest.join("cc-switch.db")).unwrap(), b"db");
-        assert!(dest.join("settings.json").is_file());
+        let settings: serde_json::Value =
+            serde_json::from_slice(&fs::read(dest.join("settings.json")).unwrap()).unwrap();
+        assert_eq!(settings, serde_json::json!({ "language": "zh" }));
         assert!(!dest.join("backups").exists());
 
         // 目标已存在时不再覆盖

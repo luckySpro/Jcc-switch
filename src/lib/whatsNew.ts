@@ -88,8 +88,8 @@ export function resolveWhatsNewLanguage(language: string): WhatsNewLanguage {
     : "en";
 }
 
-/** Jcc-switch 从这一版之后自己发版，更新日志在本仓库的 GitHub Release */
-const LAST_UPSTREAM_VERSION = "4.0.21";
+/** Jcc-switch 自己的版本号从 0.1.0 起，低于 1.0 的都是它的版本，更新日志在本仓库的 GitHub Release */
+const FIRST_UPSTREAM_VERSION = "1.0.0";
 const JCC_RELEASES_URL = "https://github.com/luckySpro/Jcc-switch/releases";
 
 /**
@@ -100,7 +100,7 @@ export function changelogUrl(
   language: WhatsNewLanguage,
   version?: string,
 ): string {
-  if (version && compareVersions(version, LAST_UPSTREAM_VERSION) > 0) {
+  if (version && compareVersions(version, FIRST_UPSTREAM_VERSION) < 0) {
     return `${JCC_RELEASES_URL}/tag/v${version}`;
   }
   const siteLanguage = language === "zh-TW" ? "zh" : language;

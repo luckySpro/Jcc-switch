@@ -95,8 +95,8 @@ describe("language and links", () => {
   });
 
   it("links Jcc-switch versions to its GitHub releases", () => {
-    expect(changelogUrl("zh", "4.1.0")).toBe(
-      "https://github.com/luckySpro/Jcc-switch/releases/tag/v4.1.0",
+    expect(changelogUrl("zh", "0.1.0")).toBe(
+      "https://github.com/luckySpro/Jcc-switch/releases/tag/v0.1.0",
     );
     expect(changelogUrl("en", "4.0.21")).toBe(
       "https://ccswitch.io/en/changelog/4.0.21",
