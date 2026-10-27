@@ -119,7 +119,10 @@ fn build_result(parsed: &ParsedPaste, key: String, hit: ProbeHit, rules: &RuleSe
         (
             DetectedProvider {
                 id: CUSTOM_ID.to_string(),
-                name: hit.candidate.name.clone(),
+                name: parsed
+                    .label
+                    .clone()
+                    .unwrap_or_else(|| hit.candidate.name.clone()),
                 icon: None,
                 icon_color: None,
                 website_url: None,

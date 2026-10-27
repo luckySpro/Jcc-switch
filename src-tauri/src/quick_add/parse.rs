@@ -10,6 +10,8 @@ pub struct ParsedPaste {
     pub api_key: Option<String>,
     /// 用户粘贴里带的地址，已去掉 `/chat/completions` 这类具体接口路径
     pub base_url: Option<String>,
+    /// 粘贴开头的标题行，如「gpt官转：」，用作中转站的默认名称
+    pub label: Option<String>,
 }
 
 static URL_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"https?://[^\s"'<>`,;]+"#).unwrap());
@@ -49,7 +51,24 @@ pub fn parse_paste(text: &str) -> ParsedPaste {
         .find(|u| !u.is_empty());
 
     let api_key = find_key(text);
-    ParsedPaste { api_key, base_url }
+    let label = find_label(text, api_key.as_deref());
+    ParsedPaste {
+        api_key,
+        base_url,
+        label,
+    }
+}
+
+/// 第一行非空内容若只是个短标题（不含地址、Key 或赋值），就当作名称
+fn find_label(text: &str, key: Option<&str>) -> Option<String> {
+    let line = text.lines().map(str::trim).find(|l| !l.is_empty())?;
+    let label = line.trim_end_matches([':', '：']).trim();
+    let is_title = !label.is_empty()
+        && label.chars().count() <= 32
+        && !URL_RE.is_match(label)
+        && key.is_none_or(|k| !label.contains(k))
+        && !label.contains(['=', ':', '：', '{', '"']);
+    is_title.then(|| label.to_string())
 }
 
 fn find_key(text: &str) -> Option<String> {
@@ -160,6 +179,37 @@ mod tests {
             Some("https://api.my-relay.example/v1")
         );
         assert_eq!(p.api_key.as_deref(), Some("sk-relay7Hk2abcdefghij1234"));
+    }
+
+    #[test]
+    fn labelled_chinese_lines() {
+        // 中转站常见的发 Key 格式：带标题、全角冒号
+        let p = parse_paste(
+            "gpt官转：\nurl：https://relay.example.com\n秘钥：sk-0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a6978\n",
+        );
+        assert_eq!(p.base_url.as_deref(), Some("https://relay.example.com"));
+        assert_eq!(
+            p.api_key.as_deref(),
+            Some("sk-0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a6978")
+        );
+        assert_eq!(p.label.as_deref(), Some("gpt官转"));
+    }
+
+    #[test]
+    fn no_label_without_a_title_line() {
+        assert_eq!(
+            parse_paste("sk-3f9c2a7e1b4d48e6a0c5f7d2e9b81a64").label,
+            None
+        );
+        assert_eq!(
+            parse_paste("url：https://relay.example.com\nsk-3f9c2a7e1b4d48e6a0c5f7d2e9b81a64")
+                .label,
+            None
+        );
+        assert_eq!(
+            parse_paste("export OPENAI_API_KEY=sk-abc123def456ghi789").label,
+            None
+        );
     }
 
     #[test]
