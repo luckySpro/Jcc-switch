@@ -48,3 +48,64 @@ async fn fetch_candidate_models(candidate: Candidate, key: String) -> Result<Vec
     .await?;
     Ok(models.into_iter().map(|m| m.id).collect())
 }
+
+/// 中转站是否支持 OpenAI Responses 接口（Grok Build 只走这个协议）。
+/// 发一个空请求体：接口存在时会因参数缺失返回 4xx 校验错误，不存在时返回 404/405，
+/// 这样不会真的调用模型、不产生费用。
+#[tauri::command]
+pub async fn quick_add_probe_responses(base_url: String, api_key: String) -> Result<bool, String> {
+    let url = format!("{}/responses", base_url.trim_end_matches('/'));
+    let response = crate::proxy::http_client::get_for_url(&url)
+        .post(&url)
+        .bearer_auth(api_key.trim())
+        .header("content-type", "application/json")
+        .body("{}")
+        .timeout(std::time::Duration::from_secs(15))
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {e}"))?;
+    let status = response.status().as_u16();
+    let body = response.text().await.unwrap_or_default();
+    Ok(responses_supported(status, &body))
+}
+
+fn responses_supported(status: u16, body: &str) -> bool {
+    match status {
+        404 | 405 | 501 => false,
+        // 有的网关对未知路径也回 400，但会在消息里说明路由不存在
+        400..=499 => {
+            let lower = body.to_ascii_lowercase();
+            ![
+                "not found",
+                "no route",
+                "invalid url",
+                "unsupported",
+                "not supported",
+            ]
+            .iter()
+            .any(|m| lower.contains(m))
+        }
+        200..=299 => true,
+        _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::responses_supported;
+
+    #[test]
+    fn classifies_responses_probe() {
+        assert!(responses_supported(
+            400,
+            r#"{"error":{"message":"model is required"}}"#
+        ));
+        assert!(responses_supported(422, "missing field `input`"));
+        assert!(!responses_supported(404, "Not Found"));
+        assert!(!responses_supported(
+            400,
+            "Invalid URL (POST /v1/responses)"
+        ));
+        assert!(!responses_supported(500, ""));
+    }
+}

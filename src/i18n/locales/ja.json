@@ -5138,6 +5138,17 @@
     "needsProxy": "ローカルプロキシでの変換が必要なため既定でオフ",
     "noModels": "このアプリに合うモデルがありません",
     "typeModel": "適したモデルが見つかりません。モデル名を入力すると有効にできます",
-    "modelRequired": "モデル名を入力してください"
+    "modelRequired": "モデル名を入力してください",
+    "more": {
+      "title": "その他のアプリ",
+      "hint": "同じ Key をこれらのアプリにも書き込みます。既定はオフです。",
+      "configOf": "{{app}} のプロバイダー設定",
+      "desktopNeedsClaude": "Claude Code のモデルを使うため、Claude Code の設定が必要です",
+      "desktopProxy": "Claude Code のモデルを使用。Claude 以外のモデルはローカルプロキシが必要です",
+      "desktopDirect": "Claude Code のモデルを使用",
+      "probingResponses": "Responses API に対応しているか確認中…",
+      "noResponses": "このアドレスは Responses API に非対応のため、Grok Build では使えません",
+      "noGrokModel": "モデル一覧に Grok モデルがないため、Grok Build では使えません"
+    }
   }
 }

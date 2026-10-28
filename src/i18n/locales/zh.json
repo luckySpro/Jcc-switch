@@ -5138,6 +5138,17 @@
     "needsProxy": "需要开启本地代理做协议转换，默认不勾选",
     "noModels": "没有适合这个应用的模型",
     "typeModel": "没挑出合适的模型，可以手动填写模型名后启用",
-    "modelRequired": "请填写模型名"
+    "modelRequired": "请填写模型名",
+    "more": {
+      "title": "更多应用",
+      "hint": "用同一个 Key 写进这些应用，默认不勾选。",
+      "configOf": "{{app}} 的供应商配置",
+      "desktopNeedsClaude": "使用 Claude Code 的模型，需先有 Claude Code 方案",
+      "desktopProxy": "使用 Claude Code 的模型；非 Claude 模型需开启本地代理",
+      "desktopDirect": "使用 Claude Code 的模型",
+      "probingResponses": "正在检测是否支持 Responses 接口…",
+      "noResponses": "这个地址不支持 Responses 接口，Grok Build 用不了",
+      "noGrokModel": "模型列表里没有 Grok 模型，Grok Build 用不了"
+    }
   }
 }

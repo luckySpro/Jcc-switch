@@ -1838,6 +1838,7 @@ function App() {
       <QuickAddDialog
         open={quickAdd.open}
         initialText={quickAdd.text}
+        visibleApps={visibleApps}
         onOpenChange={(open) => setQuickAdd({ open })}
       />
 

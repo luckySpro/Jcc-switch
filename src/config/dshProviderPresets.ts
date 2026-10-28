@@ -1,4 +1,8 @@
-import { piProviderPresets, type PiPresetModel } from "./piProviderPresets";
+import {
+  piProviderPresets,
+  type PiPresetModel,
+  type PiProviderPreset,
+} from "./piProviderPresets";
 import type { McodeProviderPreset } from "./mcodeProviderPresets";
 
 // Configurable fields offered by dsh-llm-pi-ai@0.2.1-rc.2 COMPAT_GATES.
@@ -72,49 +76,49 @@ function reasoningEfforts(model: PiPresetModel) {
 }
 
 /** DSH's pi-ai adapter accepts these three wire protocols and native compatibility options. */
-export const dshProviderPresets: McodeProviderPreset[] =
-  piProviderPresets.flatMap((preset) => {
-    const config = preset.settingsConfig;
-    if (
-      ![
-        "openai-completions",
-        "openai-responses",
-        "anthropic-messages",
-      ].includes(config.api)
-    ) {
-      return [];
-    }
-    return [
-      {
-        ...preset,
-        settingsConfig: {
-          name: preset.name,
-          kind: "custom",
-          enabled: true,
-          api: config.api,
-          ...dshCompat(config.api, config.compat),
-          options: {
-            baseURL: config.baseUrl,
-            apiKey: config.apiKey,
-            ...(config.headers ? { headers: config.headers } : {}),
-          },
-          models: Object.fromEntries(
-            config.models.map((model) => [
-              model.id,
-              {
-                name: model.name,
-                modalities: { input: model.input, output: ["text"] },
-                limit: {
-                  context: model.contextWindow,
-                  output: model.maxTokens,
-                },
-                ...dshCompat(config.api, model.compat),
-                ...(model.reasoning ? { reasoning: true } : {}),
-                reasoningEfforts: reasoningEfforts(model),
-              },
-            ]),
-          ),
+export function toDshPresets(preset: PiProviderPreset): McodeProviderPreset[] {
+  const config = preset.settingsConfig;
+  if (
+    !["openai-completions", "openai-responses", "anthropic-messages"].includes(
+      config.api,
+    )
+  ) {
+    return [];
+  }
+  return [
+    {
+      ...preset,
+      settingsConfig: {
+        name: preset.name,
+        kind: "custom",
+        enabled: true,
+        api: config.api,
+        ...dshCompat(config.api, config.compat),
+        options: {
+          baseURL: config.baseUrl,
+          apiKey: config.apiKey,
+          ...(config.headers ? { headers: config.headers } : {}),
         },
+        models: Object.fromEntries(
+          config.models.map((model) => [
+            model.id,
+            {
+              name: model.name,
+              modalities: { input: model.input, output: ["text"] },
+              limit: {
+                context: model.contextWindow,
+                output: model.maxTokens,
+              },
+              ...dshCompat(config.api, model.compat),
+              ...(model.reasoning ? { reasoning: true } : {}),
+              reasoningEfforts: reasoningEfforts(model),
+            },
+          ]),
+        ),
       },
-    ];
-  });
+    },
+  ];
+}
+
+export const dshProviderPresets: McodeProviderPreset[] =
+  piProviderPresets.flatMap(toDshPresets);

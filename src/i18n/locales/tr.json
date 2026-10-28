@@ -5094,6 +5094,17 @@
     "needsProxy": "Needs the local proxy to convert the protocol, so it's off by default",
     "noModels": "No suitable model for this app",
     "typeModel": "No model picked for this app. Type a model name to enable it",
-    "modelRequired": "Enter a model name"
+    "modelRequired": "Enter a model name",
+    "more": {
+      "title": "Diğer uygulamalar",
+      "hint": "Aynı anahtarı bu uygulamalara da yazar. Varsayılan olarak kapalı.",
+      "configOf": "{{app}} sağlayıcı yapılandırması",
+      "desktopNeedsClaude": "Claude Code modellerini kullanır; önce Claude Code gerekir",
+      "desktopProxy": "Claude Code modellerini kullanır; Claude dışı modeller yerel proxy gerektirir",
+      "desktopDirect": "Claude Code modellerini kullanır",
+      "probingResponses": "Responses API desteği kontrol ediliyor…",
+      "noResponses": "Bu adreste Responses API yok, Grok Build kullanamaz",
+      "noGrokModel": "Listede Grok modeli yok, Grok Build kullanamaz"
+    }
   }
 }

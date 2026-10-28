@@ -5139,6 +5139,17 @@
     "needsProxy": "需要開啟本機代理做協定轉換，預設不勾選",
     "noModels": "沒有適合這個應用的模型",
     "typeModel": "沒挑出合適的模型，可以手動填寫模型名後啟用",
-    "modelRequired": "請填寫模型名稱"
+    "modelRequired": "請填寫模型名稱",
+    "more": {
+      "title": "更多應用",
+      "hint": "用同一個 Key 寫入這些應用，預設不勾選。",
+      "configOf": "{{app}} 的供應商設定",
+      "desktopNeedsClaude": "使用 Claude Code 的模型，需先有 Claude Code 方案",
+      "desktopProxy": "使用 Claude Code 的模型；非 Claude 模型需開啟本地代理",
+      "desktopDirect": "使用 Claude Code 的模型",
+      "probingResponses": "正在檢測是否支援 Responses 介面…",
+      "noResponses": "這個位址不支援 Responses 介面，Grok Build 無法使用",
+      "noGrokModel": "模型清單裡沒有 Grok 模型，Grok Build 無法使用"
+    }
   }
 }

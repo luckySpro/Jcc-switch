@@ -5138,6 +5138,17 @@
     "needsProxy": "Needs the local proxy to convert the protocol, so it's off by default",
     "noModels": "No suitable model for this app",
     "typeModel": "No model picked for this app. Type a model name to enable it",
-    "modelRequired": "Enter a model name"
+    "modelRequired": "Enter a model name",
+    "more": {
+      "title": "More apps",
+      "hint": "Write the same key into these apps. Off by default.",
+      "configOf": "{{app}} provider config",
+      "desktopNeedsClaude": "Uses the Claude Code models, so Claude Code must be available",
+      "desktopProxy": "Uses the Claude Code models; non-Claude models need the local proxy",
+      "desktopDirect": "Uses the Claude Code models",
+      "probingResponses": "Checking for the Responses API…",
+      "noResponses": "This endpoint has no Responses API, so Grok Build can't use it",
+      "noGrokModel": "No Grok models in the list, so Grok Build can't use it"
+    }
   }
 }

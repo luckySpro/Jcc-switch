@@ -16,6 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import { ProviderIcon } from "@/components/ProviderIcon";
 import { toast } from "@/lib/toast";
 import { providersApi } from "@/lib/api";
+import { openclawApi } from "@/lib/api/openclaw";
+import type { AppId } from "@/lib/api/types";
 import {
   quickAddApi,
   type DetectResult,
@@ -34,6 +36,21 @@ import {
   type QuickAddApp,
   type QuickAddSelection,
 } from "./buildProviders";
+import {
+  buildMoreProviders,
+  defaultMoreSelection,
+  endpointsOf,
+  KEYED_MORE_APPS,
+  MORE_APP_LABELS,
+  moreAvailability,
+  moreMissingModel,
+  providerKeyBase,
+  uniqueKey,
+  visibleMoreApps,
+  type MoreApp,
+  type MoreAvailability,
+  type MoreSelection,
+} from "./moreApps";
 
 type Step = "paste" | "probe" | "confirm" | "done";
 
@@ -55,12 +72,15 @@ export interface QuickAddDialogProps {
   onOpenChange: (open: boolean) => void;
   /** 打开时预填的内容（例如全局粘贴） */
   initialText?: string;
+  /** 侧栏显示的应用；「更多应用」只列出这些 */
+  visibleApps?: Partial<Record<AppId, boolean>>;
 }
 
 export function QuickAddDialog({
   open,
   onOpenChange,
   initialText,
+  visibleApps,
 }: QuickAddDialogProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -74,6 +94,10 @@ export function QuickAddDialog({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<QuickAddApp[]>([]);
+  const [more, setMore] = useState<MoreSelection | null>(null);
+  /** 中转站是否支持 Responses 接口；null 表示还在探测 */
+  const [responses, setResponses] = useState<boolean | null>(null);
+  const [savedMore, setSavedMore] = useState<MoreApp[]>([]);
   const runId = useRef(0);
 
   useEffect(() => {
@@ -85,6 +109,9 @@ export function QuickAddDialog({
       setEvents({});
       setError(null);
       setSaved([]);
+      setMore(null);
+      setResponses(null);
+      setSavedMore([]);
     } else {
       runId.current += 1;
     }
@@ -136,7 +163,18 @@ export function QuickAddDialog({
       if (runId.current !== id) return;
       setResult(r);
       setSelection(defaultSelection(r));
+      setMore(defaultMoreSelection(r));
+      setResponses(null);
       setStep("confirm");
+      const openaiBase = endpointsOf(r).openai;
+      if (openaiBase) {
+        quickAddApi
+          .probeResponses(openaiBase, r.apiKey)
+          .catch(() => false)
+          .then((ok) => runId.current === id && setResponses(ok));
+      } else {
+        setResponses(false);
+      }
     } catch (e) {
       if (runId.current !== id) return;
       setError(String(e));
@@ -148,15 +186,70 @@ export function QuickAddDialog({
       result && selection ? buildQuickAddProviders(result, selection) : [],
     [result, selection],
   );
-  const missingModel = selection
-    ? appsMissingModel(selection).length > 0
-    : false;
+  const availability = useMemo<MoreAvailability>(
+    () =>
+      result ? moreAvailability(result, endpointsOf(result), responses) : {},
+    [result, responses],
+  );
+  const moreApps = useMemo(
+    () => visibleMoreApps(visibleApps).filter((app) => availability[app]),
+    [visibleApps, availability],
+  );
+  /** 只保留当前可用、且显示出来的勾选 */
+  const activeMore = useMemo<MoreSelection | null>(() => {
+    if (!more) return null;
+    const apps = Object.fromEntries(
+      moreApps
+        .filter(
+          (app) =>
+            more.apps[app] &&
+            (availability[app] === "ok" || availability[app] === "needsProxy"),
+        )
+        .map((app) => [app, true]),
+    );
+    return { ...more, apps };
+  }, [more, moreApps, availability]);
+  const builtMore = useMemo(
+    () =>
+      result && activeMore
+        ? buildMoreProviders(
+            result,
+            activeMore,
+            selection?.claude?.slots ?? null,
+            {},
+          )
+        : [],
+    [result, activeMore, selection],
+  );
+  const missingModel =
+    (selection ? appsMissingModel(selection).length > 0 : false) ||
+    (activeMore ? moreMissingModel(activeMore).length > 0 : false);
 
   const save = useCallback(async () => {
     if (!built.length) return;
     setSaving(true);
     const done: QuickAddApp[] = [];
     try {
+      // 追加型应用以供应商标识为 id，避开已有的
+      const keys: Partial<Record<MoreApp, string>> = {};
+      if (result && activeMore) {
+        const base = providerKeyBase(result, endpointsOf(result));
+        for (const app of builtMore.map((b) => b.app)) {
+          if (!KEYED_MORE_APPS.has(app)) continue;
+          const existing = Object.keys(await providersApi.getAll(app));
+          keys[app] = uniqueKey(base, existing);
+        }
+      }
+      const moreToSave =
+        result && activeMore
+          ? buildMoreProviders(
+              result,
+              activeMore,
+              selection?.claude?.slots ?? null,
+              keys,
+            )
+          : [];
+
       for (const { app, provider } of built) {
         const id = generateUUID();
         await providersApi.add({ ...provider, id, createdAt: Date.now() }, app);
@@ -166,12 +259,36 @@ export function QuickAddDialog({
         done.push(app);
         await queryClient.invalidateQueries({ queryKey: ["providers", app] });
       }
+      const doneMore: MoreApp[] = [];
+      for (const item of moreToSave) {
+        const id = item.providerKey ?? generateUUID();
+        await providersApi.add(
+          { ...item.provider, id, createdAt: Date.now() },
+          item.app,
+        );
+        // 追加型应用添加即生效；Claude Desktop 直连和 Grok Build 按「立即启用」切换
+        const switchable =
+          item.app === "grokbuild" ||
+          (item.app === "claude-desktop" &&
+            item.provider.meta?.claudeDesktopMode === "direct");
+        if (activate && switchable) {
+          await providersApi.switch(id, item.app);
+        }
+        if (item.openclawDefaults) {
+          await registerOpenClawDefaults(item.openclawDefaults);
+        }
+        doneMore.push(item.app);
+        await queryClient.invalidateQueries({
+          queryKey: ["providers", item.app],
+        });
+      }
       try {
         await providersApi.updateTrayMenu();
       } catch {
         // 托盘刷新失败不影响结果
       }
       setSaved(done);
+      setSavedMore(doneMore);
       setStep("done");
     } catch (e) {
       toast.error(
@@ -184,7 +301,16 @@ export function QuickAddDialog({
     } finally {
       setSaving(false);
     }
-  }, [activate, built, queryClient, t]);
+  }, [
+    activate,
+    activeMore,
+    built,
+    builtMore,
+    queryClient,
+    result,
+    selection,
+    t,
+  ]);
 
   const canDetect =
     Boolean(preview?.keyMasked) && preview!.candidates.length > 0;
@@ -271,6 +397,10 @@ export function QuickAddDialog({
               activate={activate}
               onActivateChange={setActivate}
               apps={built.map((b) => b.app)}
+              moreApps={moreApps}
+              more={more}
+              onMoreChange={setMore}
+              availability={availability}
             />
           )}
 
@@ -287,6 +417,15 @@ export function QuickAddDialog({
                   </div>
                 )),
               )}
+              {savedMore.map((app) => (
+                <div
+                  key={app}
+                  className="flex items-center gap-2 font-mono text-xs text-fg-2"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success-text" />
+                  {MORE_APP_LABELS[app]}
+                </div>
+              ))}
               <p className="pt-2 text-sm text-fg-2">
                 {activate
                   ? t("quickAdd.doneActive", {
@@ -319,7 +458,9 @@ export function QuickAddDialog({
               </Button>
               <Button
                 variant="solid"
-                disabled={!built.length || missingModel || saving}
+                disabled={
+                  (!built.length && !builtMore.length) || missingModel || saving
+                }
                 onClick={save}
               >
                 {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
@@ -470,6 +611,29 @@ function ProbeRow({
   );
 }
 
+/** 把默认模型登记到 OpenClaw 的模型列表；已有默认模型时不覆盖。失败不影响保存 */
+async function registerOpenClawDefaults(
+  defaults: NonNullable<
+    ReturnType<typeof buildMoreProviders>[number]["openclawDefaults"]
+  >,
+) {
+  try {
+    if (defaults.modelCatalog) {
+      const existing = (await openclawApi.getModelCatalog()) || {};
+      await openclawApi.setModelCatalog({
+        ...existing,
+        ...defaults.modelCatalog,
+      });
+    }
+    if (defaults.model) {
+      const current = await openclawApi.getDefaultModel();
+      if (!current?.primary) await openclawApi.setDefaultModel(defaults.model);
+    }
+  } catch (e) {
+    console.warn("[QuickAdd] OpenClaw model registration failed:", e);
+  }
+}
+
 function hasSuggestion(result: DetectResult, app: QuickAddApp): boolean {
   return result.suggested[app] != null;
 }
@@ -481,6 +645,10 @@ function ConfirmView({
   activate,
   onActivateChange,
   apps,
+  moreApps,
+  more,
+  onMoreChange,
+  availability,
 }: {
   result: DetectResult;
   selection: QuickAddSelection;
@@ -488,11 +656,20 @@ function ConfirmView({
   activate: boolean;
   onActivateChange: (v: boolean) => void;
   apps: QuickAddApp[];
+  moreApps: MoreApp[];
+  more: MoreSelection | null;
+  onMoreChange: (m: MoreSelection) => void;
+  availability: MoreAvailability;
 }) {
   const { t } = useTranslation();
   const modelOptions = useMemo<FetchedModel[]>(
     () => result.models.map((id) => ({ id, ownedBy: result.provider.name })),
     [result.models, result.provider.name],
+  );
+  const moreChecked = moreApps.filter(
+    (app) =>
+      more?.apps[app] &&
+      (availability[app] === "ok" || availability[app] === "needsProxy"),
   );
   const reason = (app: QuickAddApp) => {
     const plan = result.apps[app];
@@ -615,6 +792,17 @@ function ConfirmView({
         })}
       </div>
 
+      {more && moreApps.length > 0 && (
+        <MoreAppsSection
+          apps={moreApps}
+          more={more}
+          onChange={onMoreChange}
+          availability={availability}
+          models={modelOptions}
+          hasClaude={Boolean(selection.claude)}
+        />
+      )}
+
       <label className="flex items-center gap-2 text-sm">
         <Switch checked={activate} onCheckedChange={onActivateChange} />
         {t("quickAdd.activate", {
@@ -627,12 +815,151 @@ function ConfirmView({
           {t("quickAdd.filesPreview", { defaultValue: "查看将要修改的文件" })}
         </summary>
         <pre className="mt-2 overflow-x-auto rounded-control bg-subtle p-3 font-mono text-xs text-fg-2">
-          {apps.length
-            ? apps.flatMap((a) => QUICK_ADD_FILES[a]).join("\n")
+          {apps.length || moreChecked.length
+            ? [
+                ...apps.flatMap((a) => QUICK_ADD_FILES[a]),
+                ...moreChecked.map((a) =>
+                  t("quickAdd.more.configOf", {
+                    defaultValue: "{{app}} 的供应商配置",
+                    app: MORE_APP_LABELS[a],
+                  }),
+                ),
+              ].join("\n")
             : t("quickAdd.noApps", { defaultValue: "未选择应用" })}
           {"\n"}Key {result.keyMasked}
         </pre>
       </details>
+    </div>
+  );
+}
+
+function MoreAppsSection({
+  apps,
+  more,
+  onChange,
+  availability,
+  models,
+  hasClaude,
+}: {
+  apps: MoreApp[];
+  more: MoreSelection;
+  onChange: (m: MoreSelection) => void;
+  availability: MoreAvailability;
+  models: FetchedModel[];
+  hasClaude: boolean;
+}) {
+  const { t } = useTranslation();
+  const checked = (app: MoreApp) => Boolean(more.apps[app]);
+  const usesShared = apps.some(
+    (app) => checked(app) && app !== "claude-desktop" && app !== "grokbuild",
+  );
+  const note = (app: MoreApp) => {
+    const state = availability[app];
+    if (app === "claude-desktop") {
+      if (!hasClaude)
+        return t("quickAdd.more.desktopNeedsClaude", {
+          defaultValue: "使用 Claude Code 的模型，需先有 Claude Code 方案",
+        });
+      return state === "needsProxy"
+        ? t("quickAdd.more.desktopProxy", {
+            defaultValue:
+              "使用 Claude Code 的模型；非 Claude 模型需开启本地代理",
+          })
+        : t("quickAdd.more.desktopDirect", {
+            defaultValue: "使用 Claude Code 的模型",
+          });
+    }
+    if (app === "grokbuild") {
+      if (state === "probing")
+        return t("quickAdd.more.probingResponses", {
+          defaultValue: "正在检测是否支持 Responses 接口…",
+        });
+      if (state === "noGrokModel")
+        return t("quickAdd.more.noGrokModel", {
+          defaultValue: "模型列表里没有 Grok 模型，Grok Build 用不了",
+        });
+      if (state === "unsupported")
+        return t("quickAdd.more.noResponses", {
+          defaultValue: "这个地址不支持 Responses 接口，Grok Build 用不了",
+        });
+    }
+    return null;
+  };
+
+  return (
+    <div className="flex flex-col gap-2 rounded-panel border border-border p-3">
+      <div className="text-sm font-semibold">
+        {t("quickAdd.more.title", { defaultValue: "更多应用" })}
+      </div>
+      <p className="text-xs text-fg-2">
+        {t("quickAdd.more.hint", {
+          defaultValue: "用同一个 Key 写进这些应用，默认不勾选。",
+        })}
+      </p>
+      <div className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+        {apps.map((app) => {
+          const disabled =
+            (app === "claude-desktop" && !hasClaude) ||
+            availability[app] === "probing" ||
+            availability[app] === "unsupported" ||
+            availability[app] === "noGrokModel";
+          const hint = note(app);
+          return (
+            <label
+              key={app}
+              className={cn(
+                "flex min-w-0 items-start gap-2 text-sm",
+                disabled && "opacity-60",
+              )}
+            >
+              <Switch
+                checked={checked(app) && !disabled}
+                disabled={disabled}
+                aria-label={MORE_APP_LABELS[app]}
+                onCheckedChange={(v) =>
+                  onChange({ ...more, apps: { ...more.apps, [app]: v } })
+                }
+              />
+              <span className="flex min-w-0 flex-col">
+                <span>{MORE_APP_LABELS[app]}</span>
+                {hint && <span className="text-xs text-fg-2">{hint}</span>}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+      {usesShared && (
+        <ModelField
+          label={t("quickAdd.slot.model", { defaultValue: "模型" })}
+          models={models}
+          value={more.model}
+          onChange={(v) => onChange({ ...more, model: v })}
+        />
+      )}
+      {checked("grokbuild") && availability.grokbuild === "ok" && (
+        <ModelField
+          label="Grok Build"
+          models={models}
+          value={more.grokModel}
+          onChange={(v) => onChange({ ...more, grokModel: v })}
+        />
+      )}
+      {moreMissingModel({
+        ...more,
+        apps: Object.fromEntries(
+          apps
+            .filter(
+              (a) =>
+                checked(a) &&
+                (availability[a] === "ok" || availability[a] === "needsProxy"),
+            )
+            .map((a) => [a, true]),
+        ),
+      }).length > 0 && (
+        <span className="text-xs text-danger-text">
+          {t("quickAdd.modelRequired", { defaultValue: "请填写模型名" })}
+        </span>
+      )}
     </div>
   );
 }

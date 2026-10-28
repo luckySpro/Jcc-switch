@@ -86,4 +86,9 @@ export const quickAddApi = {
     channel.onmessage = onEvent;
     return await invoke("quick_add_detect", { text, onEvent: channel });
   },
+
+  /** 地址是否支持 OpenAI Responses 接口（空请求体探测，不调用模型） */
+  async probeResponses(baseUrl: string, apiKey: string): Promise<boolean> {
+    return await invoke("quick_add_probe_responses", { baseUrl, apiKey });
+  },
 };
