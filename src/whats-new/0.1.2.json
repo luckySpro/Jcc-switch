@@ -1,0 +1,19 @@
+{
+  "version": "0.1.2",
+  "items": [
+    {
+      "type": "fix",
+      "zh": "默认模型能认出 claude-sonnet-5-5 这类版本号",
+      "zh-TW": "預設模型能認出 claude-sonnet-5-5 這類版本號",
+      "en": "Default models now read versions like claude-sonnet-5-5 correctly",
+      "ja": "claude-sonnet-5-5 のような版番号を正しく認識"
+    },
+    {
+      "type": "fix",
+      "zh": "模型框旁新增下拉按钮，可以从全部模型里挑选",
+      "zh-TW": "模型欄旁新增下拉按鈕，可以從全部模型中挑選",
+      "en": "A dropdown next to each model field lists every fetched model",
+      "ja": "モデル欄の横にドロップダウンを追加し、全モデルから選べるように"
+    }
+  ]
+}
