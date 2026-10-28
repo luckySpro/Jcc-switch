@@ -148,37 +148,37 @@ function toKimiModel(model: PiPresetModel, type: KimiProviderType): KimiModel {
 
 // Share the reviewed supplier catalog and grouping metadata with Pi; translate
 // connection and model fields explicitly, without leaking Pi-only SDK options.
-export const kimiProviderPresets: KimiProviderPreset[] =
-  piProviderPresets.flatMap((preset) => {
-    const { settingsConfig: source, ...identity } = preset;
-    let type = KIMI_API_FORMATS[source.api];
-    if (!type || source.compat || !source.models.length) return [];
-    let baseUrl = source.baseUrl;
-    if (preset.family === "kimi") {
-      type = "kimi";
-      if (source.api === "anthropic-messages")
-        baseUrl = `${baseUrl.replace(/\/$/, "")}/v1`;
-    }
-    return [
-      {
-        ...identity,
-        settingsConfig: {
-          provider: {
-            type,
-            base_url: baseUrl,
-            api_key:
-              source.apiKey || (preset.category === "local" ? "local" : ""),
-            ...(source.headers
-              ? { custom_headers: { ...source.headers } }
-              : {}),
-          },
-          models: Object.fromEntries(
-            source.models.map((model) => [
-              `${preset.providerKey}/${model.id}`,
-              toKimiModel(model, type),
-            ]),
-          ),
+export function toKimiPresets(preset: PiProviderPreset): KimiProviderPreset[] {
+  const { settingsConfig: source, ...identity } = preset;
+  let type = KIMI_API_FORMATS[source.api];
+  if (!type || source.compat || !source.models.length) return [];
+  let baseUrl = source.baseUrl;
+  if (preset.family === "kimi") {
+    type = "kimi";
+    if (source.api === "anthropic-messages")
+      baseUrl = `${baseUrl.replace(/\/$/, "")}/v1`;
+  }
+  return [
+    {
+      ...identity,
+      settingsConfig: {
+        provider: {
+          type,
+          base_url: baseUrl,
+          api_key:
+            source.apiKey || (preset.category === "local" ? "local" : ""),
+          ...(source.headers ? { custom_headers: { ...source.headers } } : {}),
         },
+        models: Object.fromEntries(
+          source.models.map((model) => [
+            `${preset.providerKey}/${model.id}`,
+            toKimiModel(model, type),
+          ]),
+        ),
       },
-    ];
-  });
+    },
+  ];
+}
+
+export const kimiProviderPresets: KimiProviderPreset[] =
+  piProviderPresets.flatMap(toKimiPresets);

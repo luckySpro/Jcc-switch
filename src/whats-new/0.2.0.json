@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "items": [
+    {
+      "type": "new",
+      "zh": "一键录入可同时写入 Claude Desktop、Pi 等更多应用",
+      "zh-TW": "一鍵錄入可同時寫入 Claude Desktop、Pi 等更多應用",
+      "en": "Quick add can also write the key into 10 more apps, such as Claude Desktop, OpenCode and Pi",
+      "ja": "クイック追加で Claude Desktop や Pi など 10 個のアプリにも書き込めるように"
+    },
+    {
+      "type": "improve",
+      "zh": "Grok Build 会先检测中转站是否支持 Responses 接口",
+      "zh-TW": "Grok Build 會先檢測中轉站是否支援 Responses 介面",
+      "en": "Grok Build is offered only when the relay supports the Responses API",
+      "ja": "Grok Build は中継が Responses API に対応する場合のみ選択可能"
+    }
+  ]
+}

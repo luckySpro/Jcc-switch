@@ -1632,6 +1632,7 @@ pub fn run() {
             commands::fetch_models_for_config,
             commands::quick_add_preview,
             commands::quick_add_detect,
+            commands::quick_add_probe_responses,
             commands::get_agy_models,
             commands::get_opencode_models,
             // ours: endpoint speed test + custom endpoint management

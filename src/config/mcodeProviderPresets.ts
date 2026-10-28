@@ -99,49 +99,54 @@ function adaptiveEffortOptions(model: PiPresetModel): string[] {
   return [...new Set(efforts)];
 }
 
-export const mcodeProviderPresets: McodeProviderPreset[] =
-  piProviderPresets.flatMap((preset) => {
-    const config = preset.settingsConfig;
-    const api = MCODE_API_FORMATS.find((format) => format === config.api);
-    if (!api || config.compat) return [];
-    const models = config.models.filter(isMcodeCompatible);
-    if (models.length === 0) return [];
-    return [
-      {
-        ...preset,
-        settingsConfig: {
-          name: preset.name,
-          kind: "custom",
-          enabled: true,
-          api,
-          options: {
-            baseURL: config.baseUrl,
-            apiKey: "",
-            ...(config.headers ? { headers: config.headers } : {}),
-          },
-          models: Object.fromEntries(
-            models.map((model) => [
-              model.id,
-              {
-                name: model.name,
-                reasoning: model.reasoning,
-                modalities: { input: model.input, output: ["text"] },
-                limit: {
-                  context: model.contextWindow,
-                  output: model.maxTokens,
-                },
-                ...(model.compat ? { compat: model.compat } : {}),
-                ...(model.compat?.forceAdaptiveThinking === true
-                  ? {
-                      thinking: {
-                        effortOptions: adaptiveEffortOptions(model),
-                      },
-                    }
-                  : {}),
-              },
-            ]),
-          ),
+/** 把一个 Pi 预设转成 MCode 预设；协议或模型 MCode 表达不了时返回空数组 */
+export function toMcodePresets(
+  preset: PiProviderPreset,
+): McodeProviderPreset[] {
+  const config = preset.settingsConfig;
+  const api = MCODE_API_FORMATS.find((format) => format === config.api);
+  if (!api || config.compat) return [];
+  const models = config.models.filter(isMcodeCompatible);
+  if (models.length === 0) return [];
+  return [
+    {
+      ...preset,
+      settingsConfig: {
+        name: preset.name,
+        kind: "custom",
+        enabled: true,
+        api,
+        options: {
+          baseURL: config.baseUrl,
+          apiKey: "",
+          ...(config.headers ? { headers: config.headers } : {}),
         },
+        models: Object.fromEntries(
+          models.map((model) => [
+            model.id,
+            {
+              name: model.name,
+              reasoning: model.reasoning,
+              modalities: { input: model.input, output: ["text"] },
+              limit: {
+                context: model.contextWindow,
+                output: model.maxTokens,
+              },
+              ...(model.compat ? { compat: model.compat } : {}),
+              ...(model.compat?.forceAdaptiveThinking === true
+                ? {
+                    thinking: {
+                      effortOptions: adaptiveEffortOptions(model),
+                    },
+                  }
+                : {}),
+            },
+          ]),
+        ),
       },
-    ];
-  });
+    },
+  ];
+}
+
+export const mcodeProviderPresets: McodeProviderPreset[] =
+  piProviderPresets.flatMap(toMcodePresets);

@@ -50,7 +50,7 @@ function toOmpModel(
     : rest;
 }
 
-function toOmpPreset(preset: PiProviderPreset): OmpProviderPreset {
+export function toOmpPreset(preset: PiProviderPreset): OmpProviderPreset {
   const { name: _piOnly, compat, models, ...config } = preset.settingsConfig;
   return {
     ...preset,
