@@ -90,42 +90,45 @@ pub fn chat_models(ids: &[String]) -> Vec<String> {
     out
 }
 
-/// 名称里的版本号，按数字段比较（`glm-5.1` → [5,1]，`gpt-4o` → [4]）
+/// 名称里的版本号，按数字段比较（`glm-5.1` → [5,1]，`gpt-4o` → [4]，
+/// `claude-opus-4-8` → [4,8]）。连字符隔开的数字段也算同一个版本
 fn version_of(id: &str) -> Vec<u32> {
+    // 日期快照先换成分隔符，不算版本
     let lower = SNAPSHOT_RE
-        .replace_all(&id.to_ascii_lowercase(), "-")
+        .replace_all(&id.to_ascii_lowercase(), " ")
         .into_owned();
-    // 日期快照（8 位数字）和参数量（`70b`）不算版本
-    let mut best: Vec<u32> = Vec::new();
-    let mut current = String::new();
-    let flush = |current: &mut String, best: &mut Vec<u32>| {
-        if !current.is_empty() {
-            let parts: Vec<u32> = current
-                .split('.')
-                .filter(|s| !s.is_empty() && s.len() <= 4)
-                .filter_map(|s| s.parse().ok())
-                .collect();
-            if !parts.is_empty() && parts > *best {
-                *best = parts;
-            }
-            current.clear();
-        }
-    };
     let chars: Vec<char> = lower.chars().collect();
-    for (i, c) in chars.iter().enumerate() {
-        if c.is_ascii_digit() || (*c == '.' && !current.is_empty()) {
-            current.push(*c);
-        } else {
-            let is_param_size = *c == 'b' && !current.is_empty();
-            if is_param_size {
-                current.clear();
-            } else {
-                flush(&mut current, &mut best);
+    let mut best: Vec<u32> = Vec::new();
+    let mut run: Vec<u32> = Vec::new();
+    let mut num = String::new();
+    let mut i = 0;
+    while i <= chars.len() {
+        let c = chars.get(i).copied();
+        match c {
+            Some(d) if d.is_ascii_digit() => num.push(d),
+            // 数字后面的 `.` / `-` 接着数字，是版本的下一段
+            Some('.' | '-')
+                if !num.is_empty() && chars.get(i + 1).is_some_and(|n| n.is_ascii_digit()) =>
+            {
+                run.extend(num.parse::<u32>().ok());
+                num.clear();
+            }
+            _ => {
+                // `70b`、`235b` 是参数量，丢掉这一段
+                let is_param_size = c == Some('b') && !num.is_empty();
+                if !num.is_empty() && !is_param_size {
+                    run.extend(num.parse::<u32>().ok());
+                }
+                num.clear();
+                if !run.is_empty() {
+                    if run > best {
+                        best = std::mem::take(&mut run);
+                    }
+                    run.clear();
+                }
             }
         }
-        if i == chars.len() - 1 {
-            flush(&mut current, &mut best);
-        }
+        i += 1;
     }
     best
 }
@@ -329,11 +332,43 @@ mod tests {
     }
 
     #[test]
+    fn relay_with_hyphenated_claude_versions_picks_newest() {
+        // fangcunapi.com 实际返回的 13 个模型
+        let s = suggest(&v(&[
+            "claude-opus-5-5",
+            "claude-sonnet-5-5",
+            "claude-haiku-5-5",
+            "claude-fable-5-1",
+            "claude-opus-5",
+            "claude-fable-5",
+            "claude-opus-4-8",
+            "claude-opus-4-7",
+            "claude-opus-4-6",
+            "claude-sonnet-5",
+            "claude-sonnet-4-6",
+            "claude-opus-4-5-20251101",
+            "claude-haiku-4-5",
+        ]));
+        let c = s.claude.unwrap();
+        assert_eq!(c.main, "claude-sonnet-5-5");
+        assert_eq!(c.opus, "claude-opus-5-5");
+        assert_eq!(c.sonnet, "claude-sonnet-5-5");
+        assert_eq!(c.haiku, "claude-haiku-5-5");
+        assert_eq!(s.codex.as_deref(), Some("claude-opus-5-5"));
+    }
+
+    #[test]
     fn version_parsing() {
         assert_eq!(version_of("glm-5.1"), vec![5, 1]);
         assert_eq!(version_of("qwen3-coder-30b"), vec![3]);
         assert!(version_of("glm-5.1") > version_of("glm-4.6v"));
-        assert_eq!(version_of("claude-haiku-4-5-20251001"), vec![5]);
+        assert_eq!(version_of("claude-haiku-4-5-20251001"), vec![4, 5]);
+        assert_eq!(version_of("claude-3-5-sonnet-20241022"), vec![3, 5]);
+        assert_eq!(version_of("claude-opus-4-8"), vec![4, 8]);
+        assert!(version_of("claude-sonnet-5-5") > version_of("claude-sonnet-4-6"));
+        assert!(version_of("claude-sonnet-5") > version_of("claude-sonnet-4-6"));
+        assert_eq!(version_of("qwen2.5-72b-instruct"), vec![2, 5]);
+        assert_eq!(version_of("glm-4-9b-chat"), vec![4]);
         // 日期快照不是版本号
         assert_eq!(version_of("qwen3.7-max-2026-05-17"), vec![3, 7]);
         assert_eq!(version_of("deepseek-r1-0528"), vec![1]);

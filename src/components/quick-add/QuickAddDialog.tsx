@@ -23,6 +23,8 @@ import {
   type ProbeEvent,
 } from "@/lib/api/quickAdd";
 import { generateUUID } from "@/utils/uuid";
+import { ModelDropdown } from "@/components/providers/forms/shared/ModelDropdown";
+import type { FetchedModel } from "@/lib/api/model-fetch";
 import { cn } from "@/lib/utils";
 import {
   appsMissingModel,
@@ -488,7 +490,10 @@ function ConfirmView({
   apps: QuickAddApp[];
 }) {
   const { t } = useTranslation();
-  const listId = "quick-add-models";
+  const modelOptions = useMemo<FetchedModel[]>(
+    () => result.models.map((id) => ({ id, ownedBy: result.provider.name })),
+    [result.models, result.provider.name],
+  );
   const reason = (app: QuickAddApp) => {
     const plan = result.apps[app];
     if (!plan) {
@@ -524,12 +529,6 @@ function ConfirmView({
         </div>
       </div>
 
-      <datalist id={listId}>
-        {result.models.map((m) => (
-          <option key={m} value={m} />
-        ))}
-      </datalist>
-
       <div className="grid gap-3 sm:grid-cols-2">
         {(["claude", "codex", "gemini"] as QuickAddApp[]).map((app) => {
           const sel = selection[app];
@@ -561,7 +560,7 @@ function ConfirmView({
                   <ModelField
                     key={slot}
                     label={t(key, { defaultValue: label })}
-                    listId={listId}
+                    models={modelOptions}
                     value={selection.claude!.slots[slot]}
                     onChange={(v) =>
                       onChange({
@@ -577,7 +576,7 @@ function ConfirmView({
               ) : app !== "claude" && sel && "model" in sel ? (
                 <ModelField
                   label={t("quickAdd.slot.model", { defaultValue: "模型" })}
-                  listId={listId}
+                  models={modelOptions}
                   value={sel.model}
                   onChange={(v) =>
                     onChange({ ...selection, [app]: { ...sel, model: v } })
@@ -642,23 +641,28 @@ function ModelField({
   label,
   value,
   onChange,
-  listId,
+  models,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
-  listId: string;
+  models: FetchedModel[];
 }) {
   return (
     <label className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-2 text-xs text-fg-2">
       <span>{label}</span>
-      <input
-        list={listId}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-7 min-w-0 rounded-control border border-border bg-surface px-2 font-mono text-xs text-fg-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        spellCheck={false}
-      />
+      <div className="flex min-w-0 items-center gap-1">
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-8 min-w-0 flex-1 rounded-control border border-border bg-surface px-2 font-mono text-xs text-fg-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          spellCheck={false}
+        />
+        {/* 原生 datalist 会按输入框内容过滤，已有值时只剩一项，所以用完整列表的下拉 */}
+        {models.length > 0 && (
+          <ModelDropdown models={models} onSelect={onChange} />
+        )}
+      </div>
     </label>
   );
 }
